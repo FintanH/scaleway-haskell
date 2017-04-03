@@ -1,7 +1,5 @@
 module Scaleway
-    ( module Scaleway.Image
-    , module Scaleway.Server
+    ( module Scaleway.Types
     ) where
 
-import           Scaleway.Image
-import           Scaleway.Server
+import           Scaleway.Types

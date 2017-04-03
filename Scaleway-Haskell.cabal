@@ -16,10 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Scaleway
-                     , Scaleway.Image
-                     , Scaleway.Organization
-                     , Scaleway.Server
-                     , Scaleway.Volume
+                     , Scaleway.Types
   build-depends:       base >= 4.7 && < 5
                      , text==1.2.2.1
                      , aeson==1.0.2.1
