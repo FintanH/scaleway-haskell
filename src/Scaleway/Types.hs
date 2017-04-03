@@ -18,6 +18,11 @@ data ServerState = Running
                  | Booted
                  deriving (Eq, Generic)
 
+data ServerRef = ServerRef {
+    serverId   :: ServerId
+  , serverName :: Text
+} deriving (Show, Eq, Generic)
+
 data Server = Server {
     serverID        :: ServerId
   , severName       :: Text
@@ -52,7 +57,7 @@ data Image = Image {
   , modificationDate  :: UTCTime
   , organizationImage :: OrganizationId
   , public            :: Bool
-  , rootVolume        :: VolumRef
+  , rootVolume        :: VolumeRef
 } deriving (Show, Eq, Generic)
 
 
@@ -91,7 +96,7 @@ data User = User {
 -- | Volume Types
 newtype VolumeId = VolumeId Text deriving (Show, Eq, Generic)
 
-data VolumRef = VolumRef {
+data VolumeRef = VolumeRef {
     volumeId   :: VolumeId
   , volumeName :: Text
 } deriving (Show, Eq, Generic)
@@ -105,6 +110,89 @@ data Volume = Volume {
   , size         :: Int
   , volumeType   :: Text
 } deriving (Show, Eq, Generic)
+
+
+-- | Snapshot Types
+newtype SnapshotId = SnapshotId Text deriving (Show, Eq, Generic)
+
+data SnapshotState = Snapshotting
+                   | Snapshotted
+                   deriving (Show, Eq, Generic)
+
+data Snapshot = Snapshot {
+    snapshotId   :: SnapshotId
+  , snapshotName :: Text
+  , baseVolume   :: VolumeRef
+  , creationDate :: UTCTime
+  , organization :: OrganizationId
+  , size         :: Int
+  , state        :: SnapshotState
+  , volumeType   :: Text
+} deriving (Show, Eq, Generic)
+
+
+-- | IP Types
+newtype IPId = IPId Text deriving (Show, Eq, Generic)
+
+data IP = IP {
+    ipId         :: IPId
+  , address      :: Text
+  , organization :: OrganizationId
+  , server       :: Maybe Server
+} deriving (Show, Eq, Generic)
+
+
+-- | Security Group Types
+newtype SecurityGroupId = SecurityGroupId Text deriving (Show, Eq, Generic)
+
+data SecurityGroup = SecurityGroup {
+    securityGroupId       :: SecurityGroupId
+  , name                  :: Text
+  , description           :: Text
+  , enableDefaultSecurity :: Bool
+  , organization          :: OrganizationId
+  , organizationDefault   :: Bool
+  , servers               :: [ServerRef]
+} deriving (Show, Eq, Generic)
+
+
+-- | Security Rule
+newtype SecurityRuleId = SecurityRuleId Text deriving (Show, Eq, Generic)
+
+data Direction = Inbound
+               | Outbound
+               deriving (Show, Eq, Generic)
+
+data Protocol = TCP
+              | UDP
+              deriving (Show, Eq, Generic)
+
+data SecurityRule = SecurityRule {
+    securityRuleId :: SecurityRuleId
+  , ipRange        :: Text
+  , direction      :: Direction
+  , protocol       :: Protocol
+  , destPortFrom   :: Maybe Int
+  , destPortTo     :: Maybe Int
+  , action         :: Text
+  , position       :: Int
+  , editable       :: Maybe Bool
+} deriving (Show, Eq, Generic)
+
+
+-- | Token
+data TokenId = TokenId Text deriving (Show, Eq, Generic)
+
+data Token = Token {
+    tokenId           :: TokenId
+  , creationDate      :: UTCTime
+  , expires           :: Maybe UTCTime
+  , inheritsUserPerms :: Bool
+  , permissions       :: [Text]
+  , roles             :: (Organization, Role)
+  , userId            :: UserId
+} deriving (Show, Eq, Generic)
+
 
 -- | Instances
 instance FromJSON ServerId
@@ -148,8 +236,8 @@ instance ToJSON User
 instance FromJSON VolumeId
 instance ToJSON VolumeId
 
-instance FromJSON VolumRef
-instance ToJSON VolumRef
+instance FromJSON VolumeRef
+instance ToJSON VolumeRef
 
 instance FromJSON Volume
 instance ToJSON Volume
