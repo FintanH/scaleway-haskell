@@ -1,15 +1,18 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings     #-}
 
-module Scaleway.Types
-    (
+module Scaleway.Types.Types
+    ( Server
     ) where
 
+import           Cases               (camelize)
 import           Data.Aeson
-import           Data.Text       (Text)
-import           Data.Time.Clock (UTCTime)
+import           Data.Aeson.TH       (fieldLabelModifier)
+import qualified Data.HashMap.Strict as HM
+import           Data.Text           (Text)
+import           Data.Time.Clock     (UTCTime)
 import           GHC.Generics
-
 -- | Server Types
 newtype ServerId = ServerId Text deriving (Show, Eq, Generic)
 
@@ -206,7 +209,17 @@ instance Show ServerState where
   show Stopped = "stopped"
   show Booted = "booted"
 
-instance FromJSON ServerState
+instance FromJSON ServerState where
+  parseJSON = genericParseJSON defaultOptions . jsonCamelCase
+    -- where
+    --   opts = defaultOptions { fieldLabelModifier = map toLower . drop 1 }
+
+-- | Turn all keys in a JSON object to lowercase.
+jsonCamelCase :: Value -> Value
+jsonCamelCase (Object o) = Object . HM.fromList . map modifyKey . HM.toList $ o
+  where modifyKey (key, val) = (camelize key, val)
+jsonCamelCase x = x
+
 instance ToJSON ServerState
 
 instance FromJSON ImageId
