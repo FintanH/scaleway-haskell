@@ -8,5 +8,7 @@ import           Scaleway
 
 main :: IO ()
 main = do
-  servers <- listServers' "<my test token>" "par1" "1" "100"
+  test <- listServers' "" "par1" "1" "1"
+  print (test ^. responseBody)
+  servers <- listServers "" "par1" "1" "1"
   print servers

@@ -26,12 +26,24 @@ data ServerRef = ServerRef {
   , serverName :: Text
 } deriving (Show, Eq, Generic)
 
+data BootScript = BootScript {
+    kernel       :: Text
+  , initrd       :: Text
+  , bootcmdargs  :: Text
+  , architecture :: Text
+  , title        :: Text
+  , dtb          :: Text
+  , organization :: Text
+  , id           :: Text
+  , public       :: Bool
+} deriving (Show, Eq, Generic)
+
 data Server = Server {
-    serverID        :: ServerId
-  , severName       :: Text
+    id              :: ServerId
+  , name            :: Text
   , image           :: ImageRef
-  , bootscript      :: Maybe Text
-  , dynamicPublicIP :: Bool
+  , bootscript      :: Maybe BootScript
+  , dynamicPublicIp :: Bool
   , organization    :: OrganizationId
   , privateIP       :: Maybe Text
   , publicIP        :: Maybe Text
@@ -44,8 +56,8 @@ data Server = Server {
 newtype ImageId = ImageId Text deriving (Show, Eq, Generic)
 
 data ImageRef = ImageRef {
-    imageID   :: ImageId
-  , imageName :: Text
+    id   :: ImageId
+  , name :: Text
 } deriving (Show, Eq, Generic)
 
 data Image = Image {
@@ -209,10 +221,13 @@ instance Show ServerState where
   show Stopped = "stopped"
   show Booted = "booted"
 
+instance FromJSON BootScript
+instance ToJSON BootScript
+
 instance FromJSON ServerState where
   parseJSON = genericParseJSON defaultOptions . jsonCamelCase
-    -- where
-    --   opts = defaultOptions { fieldLabelModifier = map toLower . drop 1 }
+    where
+      opts = defaultOptions { fieldLabelModifier = \field -> if field == "id" then "serverId" else field }
 
 -- | Turn all keys in a JSON object to lowercase.
 jsonCamelCase :: Value -> Value
