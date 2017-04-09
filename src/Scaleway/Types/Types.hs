@@ -39,8 +39,8 @@ data BootScript = BootScript {
 } deriving (Show, Eq, Generic)
 
 data Server = Server {
-    id              :: ServerId
-  , name            :: Text
+    serverId        :: ServerId
+  , serverName      :: Text
   , image           :: ImageRef
   , bootscript      :: Maybe BootScript
   , dynamicPublicIp :: Bool
@@ -213,29 +213,32 @@ data Token = Token {
 instance FromJSON ServerId
 instance ToJSON ServerId
 
-instance FromJSON Server
-instance ToJSON Server
-
 instance Show ServerState where
   show Running = "running"
   show Stopped = "stopped"
   show Booted = "booted"
 
+instance FromJSON ServerState
+instance ToJSON ServerState
+
 instance FromJSON BootScript
 instance ToJSON BootScript
 
-instance FromJSON ServerState where
-  parseJSON = genericParseJSON defaultOptions . jsonCamelCase
+instance FromJSON Server where
+  parseJSON = genericParseJSON opts . jsonCamelCase
     where
-      opts = defaultOptions { fieldLabelModifier = \field -> if field == "id" then "serverId" else field }
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "serverId" = "id"
+      modifyNames "serverName" = "name"
+      modifyNames x = x
+
+instance ToJSON Server
 
 -- | Turn all keys in a JSON object to lowercase.
 jsonCamelCase :: Value -> Value
 jsonCamelCase (Object o) = Object . HM.fromList . map modifyKey . HM.toList $ o
   where modifyKey (key, val) = (camelize key, val)
 jsonCamelCase x = x
-
-instance ToJSON ServerState
 
 instance FromJSON ImageId
 instance ToJSON ImageId
