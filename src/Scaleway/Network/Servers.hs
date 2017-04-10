@@ -18,25 +18,13 @@ import           Scaleway.Types.Internal
 import qualified Scaleway.Types.Post       as Post
 
 listServers' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listServers' headerToken region pageNumber nPerPage = do
-  let url = unUrl (requestUrl region) <> "/servers"
-      opts = defaults & (pageParam pageNumber) & (perPageParam nPerPage) & (scalewayHeader headerToken)
-  getWith opts url
+listServers' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage "servers"
 
 listServers :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Server])
-listServers headerToken region pageNumber nPerPage = do
-  r <- listServers' headerToken region pageNumber nPerPage
-  return $ parseEither parseServers =<< (eitherDecode $ r ^. responseBody :: Either String Value)
-  where
-    parseServers = withObject "servers" $ \o -> do
-      serverList <- o .: "servers"
-      traverse parseJSON serverList
+listServers headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage "servers"
 
 retrieveServer' :: HeaderToken -> Region -> ServerId -> IO (Response ByteString)
-retrieveServer' headerToken region (ServerId serverId) = do
-  let url = unUrl (requestUrl region) <> "/servers/" <> (unpack serverId)
-      opts = defaults & (scalewayHeader headerToken)
-  getWith opts url
+retrieveServer' headerToken region serverId = retrieveResource' headerToken region "servers" serverId
 
 retrieveServer :: HeaderToken -> Region -> ServerId -> IO (Either String Get.Server)
 retrieveServer headerToken region serverId = do

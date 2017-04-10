@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Scaleway.Types.Internal
     ( ServerId(..)
@@ -21,6 +23,7 @@ module Scaleway.Types.Internal
     , BootScript(..)
     , PublicIp(..)
     , Tag(..)
+    , HasResourceId(..)
     ) where
 
 import           Data.Aeson                (FromJSON, ToJSON, genericParseJSON,
@@ -33,7 +36,13 @@ import           GHC.Generics
 import           Scaleway.Internal.Utility (jsonCamelCase)
 
 -- | ID aliases
+class HasResourceId f a | f -> a where
+  getResourceId :: f -> a
+
 newtype ServerId = ServerId Text deriving (Show, Eq, Generic)
+
+instance HasResourceId ServerId Text where
+  getResourceId (ServerId serverId) = serverId
 
 newtype ImageId = ImageId Text deriving (Show, Eq, Generic)
 

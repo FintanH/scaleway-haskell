@@ -25,11 +25,7 @@ data Server = Server {
 
 instance FromJSON Server
 instance ToJSON Server where
-  toJSON = jsonSnakeCaseWithModifier modifier . genericToJSON opts
+  toJSON = jsonSnakeCaseWithModifier modifier . genericToJSON defaultOptions
     where
-      opts = defaultOptions { fieldLabelModifier = modifyName }
-      modifyName "enableIpv6" = "enable_ipv6"
-      modifyName x            = x
-
       modifier "enable_ipv_6" = "enable_ipv6"
       modifier x              = x

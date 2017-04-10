@@ -4,7 +4,7 @@
 
 module Scaleway.Types.Get
     ( Server(..)
-    , ServerId(..)
+    , Volume(..)
     ) where
 
 import           Data.Aeson
