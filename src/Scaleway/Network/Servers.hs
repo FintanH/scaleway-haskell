@@ -10,7 +10,7 @@ import           Data.Aeson.Types          (parseEither, parseJSON, toJSON)
 import           Data.ByteString.Lazy      (ByteString)
 import           Data.Monoid               ((<>))
 import           Network.Wreq              (Response, defaults, getWith,
-                                            responseBody, postWith)
+                                            responseBody, postWith, deleteWith)
 import           Scaleway.Internal.Request
 import Scaleway.Types.Internal
 import Data.Text (unpack, Text)
@@ -56,10 +56,11 @@ createServer' :: HeaderToken
               -> [Tag]           -- | List of Tags to assign to the machine
               -> Bool            -- | Enable IPv6
               -> IO (Response ByteString)
-createServer' headerToken region name organization imageId commercialType tags enableIpv6 = do
+createServer' headerToken region name organization image commercialType tags enableIpv6 = do
   let serverJson = toJSON $ Post.Server{..}
       url = unUrl (requestUrl region) <> "/servers"
       opts = defaults & (scalewayHeader headerToken)
+  print $ "POSTing: " <> show serverJson
   postWith opts url serverJson
 
 createServer :: HeaderToken
@@ -71,10 +72,17 @@ createServer :: HeaderToken
              -> [Tag]           -- | List of Tags to assign to the machine
              -> Bool            -- | Enable IPv6
              -> IO (Either String Get.Server)
-createServer headerToken region serverName organizationId imageId commercialType tags enableIpv6 = do
-  r <- createServer' headerToken region serverName organizationId imageId commercialType tags enableIpv6
+createServer headerToken region serverName organizationId image commercialType tags enableIpv6 = do
+  r <- createServer' headerToken region serverName organizationId image commercialType tags enableIpv6
   return $ parseEither parseServer =<< (eitherDecode $ r ^. responseBody :: Either String Value)
   where
     parseServer = withObject "server" $ \o -> do
       server <- o .: "server"
       parseJSON server
+
+removeServer :: HeaderToken -> Region -> ServerId -> IO ()
+removeServer headerToken region (ServerId serverId) = do
+  let url = unUrl (requestUrl region) <> "/servers/" <> (unpack serverId)
+      opts = defaults & (scalewayHeader headerToken)
+  r <- deleteWith opts url
+  print $ "Successfully deleted: " <> serverId
