@@ -34,6 +34,7 @@ library
                      , Scaleway.Types.Post
                      , Scaleway.Types.Internal
                      , Scaleway.Network.Servers
+                     , Scaleway.Network.Volumes
   build-depends:       base >= 4.7 && < 5
                      , text==1.2.2.1
                      , aeson==1.0.2.1

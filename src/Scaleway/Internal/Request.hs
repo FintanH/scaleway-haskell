@@ -54,8 +54,20 @@ listResource headerToken region pageNumber nPerPage resource = do
       resourceList <- o .: (pack resource)
       traverse parseJSON resourceList
 
-retrieveResource' :: HasResourceId r Text => HeaderToken -> Region -> Resource -> r -> IO (Response ByteString)
+retrieveResource' :: HasResourceId resourceId Text => HeaderToken -> Region -> Resource -> resourceId -> IO (Response ByteString)
 retrieveResource' headerToken region resource resourceId = do
   let url = unUrl (requestUrl region) <> "/" <> resource <> "/" <> (unpack $ getResourceId resourceId)
       opts = defaults & (scalewayHeader headerToken)
   getWith opts url
+
+retrieveResource :: (FromJSON a, HasResourceId resourceId Text) => HeaderToken -> Region -> Resource -> resourceId -> IO (Either String a)
+retrieveResource headerToken region resource resourceId = do
+  r <- retrieveResource' headerToken region resource resourceId
+  return $ parseEither parseServer =<< (eitherDecode $ r ^. responseBody :: Either String Value)
+  where
+    parseServer = withObject resource $ \o -> do
+      server <- o .: objectKey resource
+      parseJSON server
+
+    objectKey "" = pack ""
+    objectKey key = pack . init $ key

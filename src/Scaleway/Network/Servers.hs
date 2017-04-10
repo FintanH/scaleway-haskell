@@ -27,13 +27,7 @@ retrieveServer' :: HeaderToken -> Region -> ServerId -> IO (Response ByteString)
 retrieveServer' headerToken region serverId = retrieveResource' headerToken region "servers" serverId
 
 retrieveServer :: HeaderToken -> Region -> ServerId -> IO (Either String Get.Server)
-retrieveServer headerToken region serverId = do
-  r <- retrieveServer' headerToken region serverId
-  return $ parseEither parseServer =<< (eitherDecode $ r ^. responseBody :: Either String Value)
-  where
-    parseServer = withObject "server" $ \o -> do
-      server <- o .: "server"
-      parseJSON server
+retrieveServer headerToken region serverId = retrieveResource headerToken region "servers" serverId
 
 createServer' :: HeaderToken
               -> Region
