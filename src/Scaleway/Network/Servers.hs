@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
@@ -16,6 +17,7 @@ import           Scaleway.Internal.Request
 import qualified Scaleway.Types.Get        as Get
 import           Scaleway.Types.Internal
 import qualified Scaleway.Types.Post       as Post
+import           Scaleway.Types.Resource   (GET, ResourceType (ServerResource))
 
 listServers' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
 listServers' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage "servers"
@@ -23,27 +25,11 @@ listServers' headerToken region pageNumber nPerPage = listResource' headerToken 
 listServers :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Server])
 listServers headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage "servers"
 
-retrieveServer' :: HeaderToken -> Region -> ServerId -> IO (Response ByteString)
-retrieveServer' headerToken region serverId = retrieveResource' headerToken region "servers" serverId
+retrieveServer' :: HeaderToken -> Region -> GET ServerResource -> IO (Response ByteString)
+retrieveServer' headerToken region server = retrieveResource' headerToken region server
 
-retrieveServer :: HeaderToken -> Region -> ServerId -> IO (Either String Get.Server)
-retrieveServer headerToken region serverId = retrieveResource headerToken region "servers" serverId
-
-createServer' :: HeaderToken
-              -> Region
-              -> Text            -- | Name of the server
-              -> OrganizationId  -- | Text ID of the Organization
-              -> ImageId         -- | Text ID of the Image
-              -> CommercialType  -- | Commercial Type of the machine
-              -> [Tag]           -- | List of Tags to assign to the machine
-              -> Bool            -- | Enable IPv6
-              -> IO (Response ByteString)
-createServer' headerToken region name organization image commercialType tags enableIpv6 = do
-  let serverJson = toJSON $ Post.Server{..}
-      url = unUrl (requestUrl region) <> "/servers"
-      opts = defaults & (scalewayHeader headerToken)
-  print $ "POSTing: " <> show serverJson
-  postWith opts url serverJson
+retrieveServer :: HeaderToken -> Region -> GET ServerResource -> IO (Either String Get.Server)
+retrieveServer headerToken region server = retrieveResource headerToken region server
 
 createServer :: HeaderToken
              -> Region
@@ -54,8 +40,8 @@ createServer :: HeaderToken
              -> [Tag]           -- | List of Tags to assign to the machine
              -> Bool            -- | Enable IPv6
              -> IO (Either String Get.Server)
-createServer headerToken region serverName organizationId image commercialType tags enableIpv6 = do
-  r <- createServer' headerToken region serverName organizationId image commercialType tags enableIpv6
+createServer headerToken region name organization image commercialType tags enableIpv6 = do
+  r <- createResource' headerToken region Post.Server{..} "servers"
   return $ parseEither parseServer =<< (eitherDecode $ r ^. responseBody :: Either String Value)
   where
     parseServer = withObject "server" $ \o -> do
