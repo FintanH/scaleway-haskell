@@ -60,7 +60,7 @@ retrieveResource' :: (HasResourceId resource Text, HasResourceName resource Stri
                   -> resource
                   -> IO (Response ByteString)
 retrieveResource' headerToken region resource = do
-  let url = unUrl (requestUrl region) <> "/" <> (getResourceName resource) <> "/" <> (unpack $ getResourceId resource)
+  let url = unUrl (requestUrl region) <> "/" <> (getResourceNamePlural resource) <> "/" <> (unpack $ getResourceId resource)
       opts = defaults & (scalewayHeader headerToken)
   getWith opts url
 
@@ -74,13 +74,10 @@ retrieveResource headerToken region resource = do
   return $ parseEither parseServer =<< (eitherDecode $ r ^. responseBody :: Either String Value)
   where
     parseServer = withObject resourceName $ \o -> do
-      server <- o .: objectKey resourceName
+      server <- o .: (pack resourceName)
       parseJSON server
 
-    resourceName = getResourceName resource
-
-    objectKey "" = pack ""
-    objectKey key = pack . init $ key
+    resourceName = getResourceNameSingular resource
 
 createResource' :: ToJSON a =>
                  HeaderToken
