@@ -8,16 +8,16 @@ module Scaleway.Types.Get
     ) where
 
 import           Data.Aeson
-import qualified Data.Aeson as Aeson
-import Data.Aeson.Types (Options(..), defaultOptions)
-import           Data.Text           (Text)
-import           Data.Time.Clock     (UTCTime)
+import qualified Data.Aeson                as Aeson
+import           Data.Aeson.Types          (Options (..), defaultOptions)
+import qualified Data.HashMap.Strict       as HM
+import           Data.Monoid               ((<>))
+import           Data.Text                 (Text)
+import qualified Data.Text                 as T
+import           Data.Time.Clock           (UTCTime)
 import           GHC.Generics
-import Data.Monoid ((<>))
-import qualified Data.Text as T
-import Scaleway.Internal.Utility (jsonCamelCase)
-import Scaleway.Types.Internal
-import qualified Data.HashMap.Strict as HM
+import           Scaleway.Internal.Utility (jsonCamelCase)
+import           Scaleway.Types.Internal
 
 -- | Server Types
 data ServerRef = ServerRef {
@@ -26,16 +26,16 @@ data ServerRef = ServerRef {
 } deriving (Show, Eq, Generic)
 
 data Server = Server {
-    serverId        :: ServerId
-  , serverName      :: Text
-  , image           :: ImageRef
-  , bootscript      :: Maybe BootScript
-  , organization    :: OrganizationId
-  , privateIp       :: Maybe Text
-  , publicIp        :: Maybe PublicIp
-  , state           :: ServerState
-  , tags            :: [Tag]
-  , volumes         :: HM.HashMap Text Volume
+    serverId       :: ServerId
+  , serverName     :: Text
+  , image          :: ImageRef
+  , bootscript     :: Maybe BootScript
+  , organization   :: OrganizationId
+  , privateIp      :: Maybe Text
+  , publicIp       :: Maybe PublicIp
+  , state          :: ServerState
+  , tags           :: [Tag]
+  , volumes        :: HM.HashMap Text Volume
   , commercialType :: CommercialType
 } deriving (Show, Eq, Generic)
 
@@ -94,15 +94,15 @@ data VolumeRef = VolumeRef {
 } deriving (Show, Eq, Generic)
 
 data Volume = Volume {
-    volumeId     :: VolumeId
-  , volumeName   :: Text
+    volumeId         :: VolumeId
+  , volumeName       :: Text
   , modificationDate :: Maybe UTCTime
-  , creationDate :: UTCTime
-  , exportURI    :: Maybe Text
-  , organization :: OrganizationId
-  , server       :: Maybe ServerRef
-  , size         :: Int
-  , volumeType   :: Text
+  , creationDate     :: UTCTime
+  , exportURI        :: Maybe Text
+  , organization     :: OrganizationId
+  , server           :: Maybe ServerRef
+  , size             :: Int
+  , volumeType       :: Text
 } deriving (Show, Eq, Generic)
 
 -- | Snapshot Types
@@ -169,9 +169,9 @@ instance FromJSON Server where
   parseJSON = genericParseJSON opts . jsonCamelCase
     where
       opts = defaultOptions { fieldLabelModifier = modifyNames }
-      modifyNames "serverId" = "id"
+      modifyNames "serverId"   = "id"
       modifyNames "serverName" = "name"
-      modifyNames x = x
+      modifyNames x            = x
 
 instance ToJSON Server
 
@@ -179,9 +179,9 @@ instance FromJSON ServerRef where
   parseJSON = genericParseJSON opts . jsonCamelCase
     where
       opts = defaultOptions { fieldLabelModifier = modifyNames }
-      modifyNames "serverId" = "id"
+      modifyNames "serverId"   = "id"
       modifyNames "serverName" = "name"
-      modifyNames x = x
+      modifyNames x            = x
 
 instance ToJSON ServerRef
 
@@ -189,9 +189,9 @@ instance FromJSON ImageRef where
   parseJSON = genericParseJSON opts . jsonCamelCase
     where
       opts = defaultOptions { fieldLabelModifier = modifyNames }
-      modifyNames "imageId" = "id"
+      modifyNames "imageId"   = "id"
       modifyNames "imageName" = "name"
-      modifyNames x = x
+      modifyNames x           = x
 
 instance ToJSON ImageRef
 
@@ -211,9 +211,9 @@ instance FromJSON Volume where
   parseJSON = genericParseJSON opts . jsonCamelCase
     where
       opts = defaultOptions { fieldLabelModifier = modifyNames }
-      modifyNames "volumeId" = "id"
+      modifyNames "volumeId"   = "id"
       modifyNames "volumeName" = "name"
-      modifyNames "exportURI" = "exportUri"
-      modifyNames x = x
+      modifyNames "exportURI"  = "exportUri"
+      modifyNames x            = x
 
 instance ToJSON Volume

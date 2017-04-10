@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Scaleway.Types.Internal
     ( ServerId(..)
@@ -22,13 +23,14 @@ module Scaleway.Types.Internal
     , Tag(..)
     ) where
 
-import GHC.Generics
-import Data.Aeson (FromJSON, ToJSON, parseJSON, withText, genericParseJSON)
-import Data.Aeson.Types (Options(..), defaultOptions)
-import Data.Text (Text)
-import qualified Data.Text as T
-import Data.Monoid ((<>))
-import Scaleway.Internal.Utility (jsonCamelCase)
+import           Data.Aeson                (FromJSON, ToJSON, genericParseJSON,
+                                            parseJSON, withText)
+import           Data.Aeson.Types          (Options (..), defaultOptions)
+import           Data.Monoid               ((<>))
+import           Data.Text                 (Text)
+import qualified Data.Text                 as T
+import           GHC.Generics
+import           Scaleway.Internal.Utility (jsonCamelCase)
 
 -- | ID aliases
 newtype ServerId = ServerId Text deriving (Show, Eq, Generic)
@@ -95,9 +97,9 @@ data BootScript = BootScript {
 
 
 data PublicIp = PublicIp {
-    dynamic :: Bool
+    dynamic    :: Bool
   , publicIpId :: Text
-  , address :: Text
+  , address    :: Text
 } deriving (Show, Eq, Generic)
 
 newtype Tag = Tag Text deriving (Show, Eq, Generic)
@@ -135,12 +137,12 @@ instance ToJSON TokenId
 instance Show ServerState where
   show Running = "running"
   show Stopped = "stopped"
-  show Booted = "booted"
+  show Booted  = "booted"
 
 instance FromJSON ServerState where
   parseJSON = withText "server state" $ \t ->
     case toState t of
-      Right s -> pure s
+      Right s  -> pure s
       Left err -> fail err
     where
       toState "running"    = Right Running
@@ -153,7 +155,7 @@ instance ToJSON ServerState
 instance FromJSON CommercialType where
   parseJSON = withText "commercial type" $ \t ->
     case toCommercialType t of
-      Right s -> pure s
+      Right s  -> pure s
       Left err -> fail err
     where
       toCommercialType "VC1S"      = Right VC1S
@@ -187,7 +189,7 @@ instance FromJSON PublicIp where
     where
       opts = defaultOptions { fieldLabelModifier = modifyNames }
       modifyNames "publicIpId" = "id"
-      modifyNames x = x
+      modifyNames x            = x
 
 instance ToJSON PublicIp
 
