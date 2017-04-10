@@ -30,7 +30,9 @@ executable test
 library
   hs-source-dirs:      src
   exposed-modules:     Scaleway
-                     , Scaleway.Types.Types
+                     , Scaleway.Types.Get
+                     , Scaleway.Types.Post
+                     , Scaleway.Types.Internal
                      , Scaleway.Network.Servers
   build-depends:       base >= 4.7 && < 5
                      , text==1.2.2.1

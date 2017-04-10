@@ -2,40 +2,27 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings     #-}
 
-module Scaleway.Types.Types
-    ( Server
+module Scaleway.Types.Get
+    ( Server(..)
+    , ServerId(..)
     ) where
 
-import           Cases               (camelize)
 import           Data.Aeson
-import           Data.Aeson.TH       (fieldLabelModifier)
-import qualified Data.HashMap.Strict as HM
+import qualified Data.Aeson as Aeson
+import Data.Aeson.Types (Options(..), defaultOptions)
 import           Data.Text           (Text)
 import           Data.Time.Clock     (UTCTime)
 import           GHC.Generics
+import Data.Monoid ((<>))
+import qualified Data.Text as T
+import Scaleway.Internal.Utility (jsonCamelCase)
+import Scaleway.Types.Internal
+import qualified Data.HashMap.Strict as HM
+
 -- | Server Types
-newtype ServerId = ServerId Text deriving (Show, Eq, Generic)
-
-data ServerState = Running
-                 | Stopped
-                 | Booted
-                 deriving (Eq, Generic)
-
 data ServerRef = ServerRef {
     serverId   :: ServerId
   , serverName :: Text
-} deriving (Show, Eq, Generic)
-
-data BootScript = BootScript {
-    kernel       :: Text
-  , initrd       :: Text
-  , bootcmdargs  :: Text
-  , architecture :: Text
-  , title        :: Text
-  , dtb          :: Text
-  , organization :: Text
-  , id           :: Text
-  , public       :: Bool
 } deriving (Show, Eq, Generic)
 
 data Server = Server {
@@ -43,21 +30,19 @@ data Server = Server {
   , serverName      :: Text
   , image           :: ImageRef
   , bootscript      :: Maybe BootScript
-  , dynamicPublicIp :: Bool
   , organization    :: OrganizationId
-  , privateIP       :: Maybe Text
-  , publicIP        :: Maybe Text
+  , privateIp       :: Maybe Text
+  , publicIp        :: Maybe PublicIp
   , state           :: ServerState
-  , tags            :: [Text]
-  , volumes         :: [Volume]
+  , tags            :: [Tag]
+  , volumes         :: HM.HashMap Text Volume
+  , commercialType :: CommercialType
 } deriving (Show, Eq, Generic)
 
 -- | Image Types
-newtype ImageId = ImageId Text deriving (Show, Eq, Generic)
-
 data ImageRef = ImageRef {
-    id   :: ImageId
-  , name :: Text
+    imageId   :: ImageId
+  , imageName :: Text
 } deriving (Show, Eq, Generic)
 
 data Image = Image {
@@ -77,8 +62,6 @@ data Image = Image {
 
 
 -- | Organization Types
-newtype OrganizationId = OrganizationId Text deriving (Show, Eq, Generic)
-
 data OrganizationRef = OrganizationRef {
     organizationId   :: OrganizationId
   , organizationName :: Text
@@ -92,10 +75,6 @@ data Organization = Organization {
 
 
 -- | User Types
-newtype UserId = UserId Text deriving (Show, Eq, Generic)
-
-data Role = Manager deriving (Show, Eq, Generic)
-
 data User = User {
     userId        :: UserId
   , email         :: Text
@@ -109,8 +88,6 @@ data User = User {
 
 
 -- | Volume Types
-newtype VolumeId = VolumeId Text deriving (Show, Eq, Generic)
-
 data VolumeRef = VolumeRef {
     volumeId   :: VolumeId
   , volumeName :: Text
@@ -119,21 +96,16 @@ data VolumeRef = VolumeRef {
 data Volume = Volume {
     volumeId     :: VolumeId
   , volumeName   :: Text
-  , exportURI    :: Maybe Bool
+  , modificationDate :: Maybe UTCTime
+  , creationDate :: UTCTime
+  , exportURI    :: Maybe Text
   , organization :: OrganizationId
-  , server       :: Maybe Server
+  , server       :: Maybe ServerRef
   , size         :: Int
   , volumeType   :: Text
 } deriving (Show, Eq, Generic)
 
-
 -- | Snapshot Types
-newtype SnapshotId = SnapshotId Text deriving (Show, Eq, Generic)
-
-data SnapshotState = Snapshotting
-                   | Snapshotted
-                   deriving (Show, Eq, Generic)
-
 data Snapshot = Snapshot {
     snapshotId   :: SnapshotId
   , snapshotName :: Text
@@ -147,10 +119,8 @@ data Snapshot = Snapshot {
 
 
 -- | IP Types
-newtype IPId = IPId Text deriving (Show, Eq, Generic)
-
 data IP = IP {
-    ipId         :: IPId
+    ipId         :: IpId
   , address      :: Text
   , organization :: OrganizationId
   , server       :: Maybe Server
@@ -158,8 +128,6 @@ data IP = IP {
 
 
 -- | Security Group Types
-newtype SecurityGroupId = SecurityGroupId Text deriving (Show, Eq, Generic)
-
 data SecurityGroup = SecurityGroup {
     securityGroupId       :: SecurityGroupId
   , name                  :: Text
@@ -172,16 +140,6 @@ data SecurityGroup = SecurityGroup {
 
 
 -- | Security Rule
-newtype SecurityRuleId = SecurityRuleId Text deriving (Show, Eq, Generic)
-
-data Direction = Inbound
-               | Outbound
-               deriving (Show, Eq, Generic)
-
-data Protocol = TCP
-              | UDP
-              deriving (Show, Eq, Generic)
-
 data SecurityRule = SecurityRule {
     securityRuleId :: SecurityRuleId
   , ipRange        :: Text
@@ -196,8 +154,6 @@ data SecurityRule = SecurityRule {
 
 
 -- | Token
-data TokenId = TokenId Text deriving (Show, Eq, Generic)
-
 data Token = Token {
     tokenId           :: TokenId
   , creationDate      :: UTCTime
@@ -208,22 +164,7 @@ data Token = Token {
   , userId            :: UserId
 } deriving (Show, Eq, Generic)
 
-
 -- | Instances
-instance FromJSON ServerId
-instance ToJSON ServerId
-
-instance Show ServerState where
-  show Running = "running"
-  show Stopped = "stopped"
-  show Booted = "booted"
-
-instance FromJSON ServerState
-instance ToJSON ServerState
-
-instance FromJSON BootScript
-instance ToJSON BootScript
-
 instance FromJSON Server where
   parseJSON = genericParseJSON opts . jsonCamelCase
     where
@@ -234,41 +175,45 @@ instance FromJSON Server where
 
 instance ToJSON Server
 
--- | Turn all keys in a JSON object to lowercase.
-jsonCamelCase :: Value -> Value
-jsonCamelCase (Object o) = Object . HM.fromList . map modifyKey . HM.toList $ o
-  where modifyKey (key, val) = (camelize key, val)
-jsonCamelCase x = x
+instance FromJSON ServerRef where
+  parseJSON = genericParseJSON opts . jsonCamelCase
+    where
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "serverId" = "id"
+      modifyNames "serverName" = "name"
+      modifyNames x = x
 
-instance FromJSON ImageId
-instance ToJSON ImageId
+instance ToJSON ServerRef
 
-instance FromJSON ImageRef
+instance FromJSON ImageRef where
+  parseJSON = genericParseJSON opts . jsonCamelCase
+    where
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "imageId" = "id"
+      modifyNames "imageName" = "name"
+      modifyNames x = x
+
 instance ToJSON ImageRef
 
 instance FromJSON Image
 instance ToJSON Image
 
-instance FromJSON OrganizationId
-instance ToJSON OrganizationId
-
 instance FromJSON Organization
 instance ToJSON Organization
-
-instance FromJSON UserId
-instance ToJSON UserId
-
-instance FromJSON Role
-instance ToJSON Role
 
 instance FromJSON User
 instance ToJSON User
 
-instance FromJSON VolumeId
-instance ToJSON VolumeId
-
 instance FromJSON VolumeRef
 instance ToJSON VolumeRef
 
-instance FromJSON Volume
+instance FromJSON Volume where
+  parseJSON = genericParseJSON opts . jsonCamelCase
+    where
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "volumeId" = "id"
+      modifyNames "volumeName" = "name"
+      modifyNames "exportURI" = "exportUri"
+      modifyNames x = x
+
 instance ToJSON Volume
