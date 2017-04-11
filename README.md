@@ -1,6 +1,29 @@
 # Scaleway-Haskell
 SDK for Scaleway API in Haskell
 
+# How to get started
+Since the this is not uploaded on hackage, for the time being you can clone the git repo to get the code.
+
+Example code:
+``` haskell
+{-# LANGUAGE OverloadedStrings #-}
+
+module Main where
+
+import           Scaleway
+
+main :: IO ()
+main = do
+  let headerToken = "x-auth-token"
+  servers <- listServers headerToken Paris "1" "1" -- first page, one result in Paris
+  print servers
+```
+To get more familiar with the functionality you can look at the sub-modules of Network. 
+
+# TODO
+* Add further functionality such as POSTs, PUTs and DELETEs
+* Fix functionality in terms of API behaviour
+
 # Notes
 
 ## Errors
