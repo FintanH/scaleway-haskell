@@ -5,7 +5,7 @@
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE KindSignatures         #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE PolyKinds              #-}
 
 module Scaleway.Types.Resource
     ( HasResourceId(..)
@@ -13,6 +13,12 @@ module Scaleway.Types.Resource
     , GetServer
     , GetVolume
     , GetImage
+    , GetOrganization
+    , GetUser
+    , GetSnapshot
+    , GetSecurityGroup
+    , GetSecurityRule
+    , GetToken
     , getServer
     , listServer
     , getVolume
@@ -181,10 +187,18 @@ instance HasResourceName GetImage String where
   getResourceNamePlural   _ = "images"
   getResourceNameSingular _ = "image"
 
+instance HasResourceName (GET ListResource ImageResource) String where
+  getResourceNamePlural   _ = "images"
+  getResourceNameSingular _ = "image"
+
 instance HasResourceId GetOrganization Text where
   getResourceId (GetOrganizationR (OrganizationId organizationId)) = organizationId
 
 instance HasResourceName GetOrganization String where
+  getResourceNamePlural   _ = "organizations"
+  getResourceNameSingular _ = "organization"
+
+instance HasResourceName (GET ListResource OrganizationResource) String where
   getResourceNamePlural   _ = "organizations"
   getResourceNameSingular _ = "organization"
 
@@ -195,6 +209,10 @@ instance HasResourceName GetUser String where
   getResourceNamePlural   _ = "users"
   getResourceNameSingular _ = "user"
 
+instance HasResourceName (GET ListResource UserResource) String where
+  getResourceNamePlural   _ = "users"
+  getResourceNameSingular _ = "user"
+
 instance HasResourceId GetSnapshot Text where
   getResourceId (GetSnapshotR (SnapshotId snapshotId)) = snapshotId
 
@@ -202,12 +220,20 @@ instance HasResourceName GetSnapshot String where
   getResourceNamePlural   _ = "snapshots"
   getResourceNameSingular _ = "snapshot"
 
+instance HasResourceName (GET ListResource SnapshotResource) String where
+  getResourceNamePlural   _ = "snapshots"
+  getResourceNameSingular _ = "snapshot"
+
 instance HasResourceId GetSecurityGroup Text where
   getResourceId (GetSecurityGroupR (SecurityGroupId securityGroupId)) = securityGroupId
 
 instance HasResourceName GetSecurityGroup String where
-  getResourceNamePlural   _ = "sercurity_groups"
-  getResourceNameSingular _ = "sercurity_group"
+  getResourceNamePlural   _ = "security_groups"
+  getResourceNameSingular _ = "security_group"
+
+instance HasResourceName (GET ListResource SecurityGroupResource) String where
+  getResourceNamePlural   _ = "security_groups"
+  getResourceNameSingular _ = "security_group"
 
 instance HasResourceId GetSecurityRule Text where
   getResourceId (GetSecurityRuleR (SecurityRuleId securityRuleId)) = securityRuleId
@@ -216,9 +242,17 @@ instance HasResourceName GetSecurityRule String where
   getResourceNamePlural   _ = "security_rules"
   getResourceNameSingular _ = "security_rule"
 
+instance HasResourceName (GET ListResource SecurityRuleResource) String where
+  getResourceNamePlural   _ = "security_rules"
+  getResourceNameSingular _ = "security_rule"
+
 instance HasResourceId GetToken Text where
   getResourceId (GetTokenR (TokenId tokenId)) = tokenId
 
 instance HasResourceName GetToken String where
+  getResourceNamePlural   _ = "tokens"
+  getResourceNameSingular _ = "token"
+
+instance HasResourceName (GET ListResource TokenResource) String where
   getResourceNamePlural   _ = "tokens"
   getResourceNameSingular _ = "token"

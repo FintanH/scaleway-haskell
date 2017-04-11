@@ -2,7 +2,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module Scaleway.Network.Servers where
+module Scaleway.Network.Server
+    ( listServers'
+    , listServers
+    , retrieveServer'
+    , retrieveServer
+    ) where
 
 import           Control.Lens
 import           Data.Aeson                (Value, eitherDecode, withObject,

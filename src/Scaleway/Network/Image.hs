@@ -2,7 +2,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module Scaleway.Network.Image where
+module Scaleway.Network.Image
+    ( listImages'
+    , listImages
+    , retrieveImage'
+    , retrieveImage
+    ) where
 
 import           Control.Lens
 import           Data.Aeson                (Value, eitherDecode, withObject,
@@ -19,14 +24,14 @@ import           Scaleway.Types.Internal
 import qualified Scaleway.Types.Post       as Post
 import           Scaleway.Types.Resource   (GetImage, listImage)
 
-listServers' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listServers' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listImage
+listImages' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
+listImages' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listImage
 
-listServers :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Image])
-listServers headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listImage
+listImages :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Image])
+listImages headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listImage
 
-retrieveServer' :: HeaderToken -> Region -> GetImage -> IO (Response ByteString)
-retrieveServer' headerToken region server = retrieveResource' headerToken region server
+retrieveImage' :: HeaderToken -> Region -> GetImage -> IO (Response ByteString)
+retrieveImage' headerToken region server = retrieveResource' headerToken region server
 
-retrieveServer :: HeaderToken -> Region -> GetImage -> IO (Either String Get.Image)
-retrieveServer headerToken region server = retrieveResource headerToken region server
+retrieveImage :: HeaderToken -> Region -> GetImage -> IO (Either String Get.Image)
+retrieveImage headerToken region server = retrieveResource headerToken region server

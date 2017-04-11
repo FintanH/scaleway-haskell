@@ -2,7 +2,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module Scaleway.Network.Volumes where
+module Scaleway.Network.Volume
+    ( listVolumes'
+    , listVolumes
+    , retrieveVolume'
+    , retrieveVolume
+    ) where
 
 import           Control.Lens
 import           Data.Aeson                (Value, eitherDecode, withObject,

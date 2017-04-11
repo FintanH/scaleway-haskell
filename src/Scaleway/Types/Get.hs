@@ -5,6 +5,13 @@
 module Scaleway.Types.Get
     ( Server(..)
     , Volume(..)
+    , Image(..)
+    , Organization(..)
+    , User(..)
+    , Snapshot(..)
+    , SecurityGroup(..)
+    , SecurityRule(..)
+    , Token(..)
     ) where
 
 import           Data.Aeson
@@ -46,18 +53,18 @@ data ImageRef = ImageRef {
 } deriving (Show, Eq, Generic)
 
 data Image = Image {
-    imageId           :: ImageId
-  , imageName         :: Text
-  , architecture      :: Text
-  , creationDate      :: UTCTime
-  , extraVolumes      :: [Volume]
-  , fromImage         :: Maybe Text
-  , fromServer        :: Maybe Text
-  , marketplaceKey    :: Maybe Text
-  , modificationDate  :: UTCTime
-  , organizationImage :: OrganizationId
-  , public            :: Bool
-  , rootVolume        :: VolumeRef
+    imageId          :: ImageId
+  , imageName        :: Text
+  , architecture     :: Text
+  , creationDate     :: UTCTime
+  , extraVolumes     :: Text
+  , fromImage        :: Maybe Text
+  , fromServer       :: Maybe Text
+  , marketplaceKey   :: Maybe Text
+  , modificationDate :: UTCTime
+  , organization     :: OrganizationId
+  , public           :: Bool
+  , rootVolume       :: VolumeRef
 } deriving (Show, Eq, Generic)
 
 
@@ -91,6 +98,8 @@ data User = User {
 data VolumeRef = VolumeRef {
     volumeId   :: VolumeId
   , volumeName :: Text
+  , size       :: Int
+  , volumeType :: Text
 } deriving (Show, Eq, Generic)
 
 data Volume = Volume {
@@ -109,7 +118,7 @@ data Volume = Volume {
 data Snapshot = Snapshot {
     snapshotId   :: SnapshotId
   , snapshotName :: Text
-  , baseVolume   :: VolumeRef
+  , baseVolume   :: Maybe VolumeRef
   , creationDate :: UTCTime
   , organization :: OrganizationId
   , size         :: Int
@@ -195,16 +204,38 @@ instance FromJSON ImageRef where
 
 instance ToJSON ImageRef
 
-instance FromJSON Image
+instance FromJSON Image where
+  parseJSON = genericParseJSON opts . jsonCamelCase
+    where
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "imageId"      = "id"
+      modifyNames "imageName"    = "name"
+      modifyNames "architecture" = "arch"
+      modifyNames x              = x
+
 instance ToJSON Image
 
-instance FromJSON Organization
+instance FromJSON Organization where
+  parseJSON = genericParseJSON opts . jsonCamelCase
+    where
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "organizationId"   = "id"
+      modifyNames "organizationName" = "name"
+      modifyNames x                  = x
+
 instance ToJSON Organization
 
 instance FromJSON User
 instance ToJSON User
 
-instance FromJSON VolumeRef
+instance FromJSON VolumeRef where
+  parseJSON = genericParseJSON opts . jsonCamelCase
+    where
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "volumeId"   = "id"
+      modifyNames "volumeName" = "name"
+      modifyNames x            = x
+
 instance ToJSON VolumeRef
 
 instance FromJSON Volume where
@@ -217,3 +248,32 @@ instance FromJSON Volume where
       modifyNames x            = x
 
 instance ToJSON Volume
+
+instance FromJSON Snapshot where
+  parseJSON = genericParseJSON opts . jsonCamelCase
+    where
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "snapshotId"   = "id"
+      modifyNames "snapshotName" = "name"
+      modifyNames x              = x
+
+instance FromJSON SecurityGroup where
+  parseJSON = genericParseJSON opts . jsonCamelCase
+    where
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "securityGroupId" = "id"
+      modifyNames x                 = x
+
+instance FromJSON SecurityRule where
+  parseJSON = genericParseJSON opts . jsonCamelCase
+    where
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "securityRuleId" = "id"
+      modifyNames x                 = x
+
+instance FromJSON Token where
+  parseJSON = genericParseJSON opts . jsonCamelCase
+    where
+      opts = defaultOptions { fieldLabelModifier = modifyNames }
+      modifyNames "tokenId" = "id"
+      modifyNames x         = x

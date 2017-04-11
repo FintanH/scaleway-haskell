@@ -184,7 +184,13 @@ instance ToJSON CommercialType
 instance FromJSON Role
 instance ToJSON Role
 
-instance FromJSON SnapshotState
+instance FromJSON SnapshotState where
+  parseJSON = withText "snap shot state" $ \t ->
+    case t of
+      "snapshotting" -> return Snapshotting
+      "snapshotted"  -> return Snapshotted
+      _              -> fail (T.unpack $ "Could not make SnapshotState type with: " <> t)
+
 instance ToJSON SnapshotState
 
 instance FromJSON Direction

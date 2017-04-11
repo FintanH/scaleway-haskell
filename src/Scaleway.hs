@@ -1,9 +1,7 @@
 module Scaleway
     ( module Scaleway.Types.Get
-    , module Scaleway.Network.Servers
-    , module Scaleway.Network.Volumes
+    , module Scaleway.Network
     ) where
 
-import           Scaleway.Network.Servers
-import           Scaleway.Network.Volumes
+import           Scaleway.Network
 import           Scaleway.Types.Get

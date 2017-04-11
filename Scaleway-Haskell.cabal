@@ -33,9 +33,15 @@ library
                      , Scaleway.Types.Get
                      , Scaleway.Types.Post
                      , Scaleway.Types.Internal
-                     , Scaleway.Network.Servers
-                     , Scaleway.Network.Volumes
+                     , Scaleway.Network
+                     , Scaleway.Network.Server
+                     , Scaleway.Network.Volume
                      , Scaleway.Network.Image
+                     , Scaleway.Network.Organization
+                     , Scaleway.Network.User
+                     , Scaleway.Network.SecurityGroup
+                     , Scaleway.Network.SecurityRule
+                     , Scaleway.Network.Token
                      , Scaleway.Types.Resource
   build-depends:       base >= 4.7 && < 5
                      , text==1.2.2.1
