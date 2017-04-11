@@ -19,6 +19,18 @@ module Scaleway.Types.Resource
     , listVolume
     , getImage
     , listImage
+    , getOrganization
+    , listOrganization
+    , getUser
+    , listUser
+    , getSnapshot
+    , listSnapshot
+    , getSecurityGroup
+    , listSecurityGroup
+    , getSecurityRule
+    , listSecurityRule
+    , getToken
+    , listToken
     ) where
 
 import           Data.Text               (Text)
