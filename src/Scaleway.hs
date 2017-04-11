@@ -1,7 +1,7 @@
 module Scaleway
-    ( module Scaleway.Types.Get
+    ( module Scaleway.Types
     , module Scaleway.Network
     ) where
 
 import           Scaleway.Network
-import           Scaleway.Types.Get
+import           Scaleway.Types
