@@ -12,18 +12,13 @@ module Scaleway.Types.Resource
     , HasResourceName(..)
     , GetServer
     , GetVolume
+    , GetImage
     , getServer
     , listServer
     , getVolume
     , listVolume
-    -- , mkVolume
-    -- , mkImage
-    -- , mkOrganization
-    -- , mkUser
-    -- , mkSnapshot
-    -- , mkSecurityGroup
-    -- , mkSecurityRule
-    -- , mkToken
+    , getImage
+    , listImage
     ) where
 
 import           Data.Text               (Text)
@@ -97,26 +92,47 @@ getVolume = GetVolumeR . VolumeId
 listVolume :: GET ListResource VolumeResource
 listVolume = ListVolumeR
 
-mkImage :: Text -> GetImage
-mkImage = GetImageR . ImageId
+getImage :: Text -> GetImage
+getImage = GetImageR . ImageId
 
-mkOrganization :: Text -> GetOrganization
-mkOrganization = GetOrganizationR . OrganizationId
+listImage :: GET ListResource ImageResource
+listImage = ListImageR
 
-mkUser :: Text -> GetUser
-mkUser = GetUserR . UserId
+getOrganization :: Text -> GetOrganization
+getOrganization = GetOrganizationR . OrganizationId
 
-mkSnapshot :: Text -> GetSnapshot
-mkSnapshot = GetSnapshotR . SnapshotId
+listOrganization :: GET ListResource OrganizationResource
+listOrganization = ListOrganizationR
 
-mkSecurityGroup :: Text -> GetSecurityGroup
-mkSecurityGroup = GetSecurityGroupR . SecurityGroupId
+getUser :: Text -> GetUser
+getUser = GetUserR . UserId
 
-mkSecurityRule :: Text -> GetSecurityRule
-mkSecurityRule = GetSecurityRuleR . SecurityRuleId
+listUser :: GET ListResource UserResource
+listUser = ListUserR
 
-mkToken :: Text -> GetToken
-mkToken = GetTokenR . TokenId
+getSnapshot :: Text -> GetSnapshot
+getSnapshot = GetSnapshotR . SnapshotId
+
+listSnapshot :: GET ListResource SnapshotResource
+listSnapshot = ListSnapshotR
+
+getSecurityGroup :: Text -> GetSecurityGroup
+getSecurityGroup = GetSecurityGroupR . SecurityGroupId
+
+listSecurityGroup :: GET ListResource SecurityGroupResource
+listSecurityGroup = ListSecurityGroupR
+
+getSecurityRule :: Text -> GetSecurityRule
+getSecurityRule = GetSecurityRuleR . SecurityRuleId
+
+listSecurityRule :: GET ListResource SecurityRuleResource
+listSecurityRule = ListSecurityRuleR
+
+getToken :: Text -> GetToken
+getToken = GetTokenR . TokenId
+
+listToken :: GET ListResource TokenResource
+listToken = ListTokenR
 
 instance HasResourceId ServerId Text where
   getResourceId (ServerId serverId) = serverId
