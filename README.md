@@ -33,7 +33,7 @@ When testing /security_groups/rules I was met with a 400:
 }
 ```
 
-## Endpoints that do not have dual behaviour
+## Endpoint Behaviours
 Some endpoints support listing all resources, some only support getting a specific resource and some support both.
 Here's the list:
 
