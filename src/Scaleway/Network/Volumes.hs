@@ -16,16 +16,16 @@ import           Network.Wreq              (Response, defaults, deleteWith,
 import           Scaleway.Internal.Request
 import qualified Scaleway.Types.Get        as Get
 import           Scaleway.Types.Internal
-import           Scaleway.Types.Resource   (GET, ResourceType (VolumeResource))
+import           Scaleway.Types.Resource   (GetVolume, listVolume)
 
 listVolumes' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listVolumes' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage "volumes"
+listVolumes' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listVolume
 
 listVolumes :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Volume])
-listVolumes headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage "volumes"
+listVolumes headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listVolume
 
-retrieveVolume' :: HeaderToken -> Region -> GET VolumeResource -> IO (Response ByteString)
+retrieveVolume' :: HeaderToken -> Region -> GetVolume -> IO (Response ByteString)
 retrieveVolume' headerToken region volume = retrieveResource' headerToken region volume
 
-retrieveVolume :: HeaderToken -> Region -> GET VolumeResource -> IO (Either String Get.Volume)
+retrieveVolume :: HeaderToken -> Region -> GetVolume -> IO (Either String Get.Volume)
 retrieveVolume headerToken region volume = retrieveResource headerToken region volume

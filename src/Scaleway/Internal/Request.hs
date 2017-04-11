@@ -39,20 +39,34 @@ pageParam pageNumber = param "page" .~ [pageNumber]
 perPageParam :: PerPage -> Options -> Options
 perPageParam n = param "per_page" .~ [n]
 
-listResource' :: HeaderToken -> Region -> Page -> PerPage -> Resource -> IO (Response ByteString)
+listResource' :: (HasResourceName resource String)
+              => HeaderToken
+              -> Region
+              -> Page
+              -> PerPage
+              -> resource
+              -> IO (Response ByteString)
 listResource' headerToken region pageNumber nPerPage resource =
-  let url = unUrl (requestUrl region) <> "/" <> resource
+  let url = unUrl (requestUrl region) <> "/" <> (getResourceNamePlural resource)
       opts = defaults & (pageParam pageNumber) & (perPageParam nPerPage) & (scalewayHeader headerToken)
   in getWith opts url
 
-listResource :: (FromJSON a) => HeaderToken -> Region -> Page -> PerPage -> Resource -> IO (Either String [a])
+listResource :: (FromJSON a, HasResourceName resource String)
+             => HeaderToken
+             -> Region
+             -> Page
+             -> PerPage
+             -> resource
+             -> IO (Either String [a])
 listResource headerToken region pageNumber nPerPage resource = do
   r <- listResource' headerToken region pageNumber nPerPage resource
   return $ parseEither parseResources =<< (eitherDecode $ r ^. responseBody :: Either String Value)
   where
-    parseResources = withObject resource $ \o -> do
-      resourceList <- o .: (pack resource)
+    parseResources = withObject resourceName $ \o -> do
+      resourceList <- o .: (pack resourceName)
       traverse parseJSON resourceList
+
+    resourceName = getResourceNamePlural resource
 
 retrieveResource' :: (HasResourceId resource Text, HasResourceName resource String) =>
                      HeaderToken

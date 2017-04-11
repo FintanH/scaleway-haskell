@@ -17,18 +17,18 @@ import           Scaleway.Internal.Request
 import qualified Scaleway.Types.Get        as Get
 import           Scaleway.Types.Internal
 import qualified Scaleway.Types.Post       as Post
-import           Scaleway.Types.Resource   (GET, ResourceType (ServerResource))
+import           Scaleway.Types.Resource   (GetServer, listServer)
 
 listServers' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listServers' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage "servers"
+listServers' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listServer
 
 listServers :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Server])
-listServers headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage "servers"
+listServers headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listServer
 
-retrieveServer' :: HeaderToken -> Region -> GET ServerResource -> IO (Response ByteString)
+retrieveServer' :: HeaderToken -> Region -> GetServer -> IO (Response ByteString)
 retrieveServer' headerToken region server = retrieveResource' headerToken region server
 
-retrieveServer :: HeaderToken -> Region -> GET ServerResource -> IO (Either String Get.Server)
+retrieveServer :: HeaderToken -> Region -> GetServer -> IO (Either String Get.Server)
 retrieveServer headerToken region server = retrieveResource headerToken region server
 
 createServer :: HeaderToken
