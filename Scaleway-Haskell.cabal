@@ -26,6 +26,13 @@ library
                      , Scaleway.Network.SecurityGroup
                      , Scaleway.Network.SecurityRule
                      , Scaleway.Network.Token
+  other-modules:       Scaleway.Internal.Request
+                    ,  Scaleway.Internal.Utility
+                    ,  Scaleway.Network.Snapshot
+                    ,  Scaleway.Types.Get
+                    ,  Scaleway.Types.Internal
+                    ,  Scaleway.Types.Post
+                    ,  Scaleway.Types.Resource
   build-depends:       base >= 4.7 && < 5
                      , text==1.2.2.1
                      , aeson==1.0.2.1
