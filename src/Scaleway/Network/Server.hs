@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+
 {-# LANGUAGE RecordWildCards   #-}
 
 module Scaleway.Network.Server

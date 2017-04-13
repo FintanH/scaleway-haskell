@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
+
 
 module Scaleway.Types.Post
     ( Server(..)

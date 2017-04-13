@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+
 {-# LANGUAGE FlexibleContexts #-}
 
 module Scaleway.Internal.Request where
