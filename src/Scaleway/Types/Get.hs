@@ -35,7 +35,7 @@ data ServerRef = ServerRef {
 data Server = Server {
     serverId       :: ServerId
   , serverName     :: Text
-  , image          :: ImageRef
+  , image          :: Maybe ImageRef
   , bootscript     :: Maybe BootScript
   , organization   :: OrganizationId
   , privateIp      :: Maybe Text
