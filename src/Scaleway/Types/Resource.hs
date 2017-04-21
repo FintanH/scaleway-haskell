@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE KindSignatures         #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
@@ -57,10 +56,10 @@ data ResourceType = ServerResource
                   | SecurityRuleResource
                   | TokenResource
 
-class HasResourceId f a | f -> a where
+class HasResourceId f a where
   getResourceId :: f -> a
 
-class HasResourceName f a | f -> a where
+class HasResourceName f a where
   getResourceNamePlural   :: f -> a
   getResourceNameSingular :: f -> a
 
