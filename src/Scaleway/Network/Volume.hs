@@ -19,11 +19,13 @@ import qualified Scaleway.Types.Get            as Get
 import           Scaleway.Types.Internal       (Region)
 import           Scaleway.Types.Resource       (GetVolume, listVolume)
 
-listVolumes' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listVolumes' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listVolume
+listVolumes' :: (MonadReader ScalewayEnv m, MonadIO m)
+             => Page -> PerPage -> m (Response ByteString)
+listVolumes' pageNumber nPerPage = listResource' pageNumber nPerPage listVolume
 
-listVolumes :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Volume])
-listVolumes headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listVolume
+listVolumes :: (MonadReader ScalewayEnv m, MonadIO m)
+            => Page -> PerPage -> m (Either String [Get.Volume])
+listVolumes pageNumber nPerPage = listResource pageNumber nPerPage listVolume
 
 retrieveVolume' :: (MonadReader ScalewayEnv m, MonadIO m)
                 => GetVolume -> m (Response ByteString)

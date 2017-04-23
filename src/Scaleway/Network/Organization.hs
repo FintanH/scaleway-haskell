@@ -21,11 +21,13 @@ import           Scaleway.Types.Internal       (Region)
 import           Scaleway.Types.Resource       (GetOrganization,
                                                 listOrganization)
 
-listOrganizations' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listOrganizations' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listOrganization
+listOrganizations' :: (MonadReader ScalewayEnv m, MonadIO m)
+                   => Page -> PerPage -> m (Response ByteString)
+listOrganizations' pageNumber nPerPage = listResource' pageNumber nPerPage listOrganization
 
-listOrganizations :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Organization])
-listOrganizations headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listOrganization
+listOrganizations :: (MonadReader ScalewayEnv m, MonadIO m)
+                  => Page -> PerPage -> m (Either String [Get.Organization])
+listOrganizations pageNumber nPerPage = listResource pageNumber nPerPage listOrganization
 
 retrieveOrganization' :: (MonadReader ScalewayEnv m, MonadIO m)
                       => GetOrganization -> m (Response ByteString)

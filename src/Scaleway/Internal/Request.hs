@@ -42,27 +42,26 @@ pageParam pageNumber = param "page" .~ [pageNumber]
 perPageParam :: PerPage -> Options -> Options
 perPageParam n = param "per_page" .~ [n]
 
-listResource' :: (HasResourceName resource String)
-              => HeaderToken
-              -> Region
-              -> Page
+listResource' :: (HasResourceName resource String,
+                  MonadReader ScalewayEnv m, MonadIO m)
+              => Page
               -> PerPage
               -> resource
-              -> IO (Response ByteString)
-listResource' headerToken region pageNumber nPerPage resource =
-  let url = unUrl (requestUrl region) <> "/" <> (getResourceNamePlural resource)
-      opts = defaults & (pageParam pageNumber) & (perPageParam nPerPage) & (scalewayHeader headerToken)
-  in getWith opts url
+              -> m (Response ByteString)
+listResource' pageNumber nPerPage resource = do
+  scalewayEnv <- ask
+  let url = unUrl (requestUrl $ region scalewayEnv) <> "/" <> (getResourceNamePlural resource)
+      opts = defaults & (pageParam pageNumber) & (perPageParam nPerPage) & (scalewayHeader $ authToken scalewayEnv)
+  liftIO (getWith opts url)
 
-listResource :: (FromJSON a, HasResourceName resource String)
-             => HeaderToken
-             -> Region
-             -> Page
+listResource :: (FromJSON a, HasResourceName resource String,
+                 MonadReader ScalewayEnv m, MonadIO m)
+             => Page
              -> PerPage
              -> resource
-             -> IO (Either String [a])
-listResource headerToken region pageNumber nPerPage resource = do
-  r <- listResource' headerToken region pageNumber nPerPage resource
+             -> m (Either String [a])
+listResource pageNumber nPerPage resource = do
+  r <- listResource' pageNumber nPerPage resource
   return $ parseEither parseResources =<< (eitherDecode $ r ^. responseBody :: Either String Value)
   where
     parseResources = withObject resourceName $ \o -> do

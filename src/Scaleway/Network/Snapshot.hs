@@ -20,11 +20,13 @@ import qualified Scaleway.Types.Get            as Get
 import           Scaleway.Types.Internal       (Region)
 import           Scaleway.Types.Resource       (GetSnapshot, listSnapshot)
 
-listSnapshots' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listSnapshots' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listSnapshot
+listSnapshots' :: (MonadReader ScalewayEnv m, MonadIO m)
+               => Page -> PerPage -> m (Response ByteString)
+listSnapshots' pageNumber nPerPage = listResource' pageNumber nPerPage listSnapshot
 
-listSnapshots :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Snapshot])
-listSnapshots headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listSnapshot
+listSnapshots :: (MonadReader ScalewayEnv m, MonadIO m)
+              => Page -> PerPage -> m (Either String [Get.Snapshot])
+listSnapshots pageNumber nPerPage = listResource pageNumber nPerPage listSnapshot
 
 retrieveSnapshot' :: (MonadReader ScalewayEnv m, MonadIO m)
                   => GetSnapshot -> m (Response ByteString)

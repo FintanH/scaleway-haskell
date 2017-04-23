@@ -19,11 +19,13 @@ import           Scaleway.Types.Internal   (Region)
 import qualified Scaleway.Types.Get        as Get
 import           Scaleway.Types.Resource   (GetImage, listImage)
 
-listImages' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listImages' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listImage
+listImages' :: (MonadReader ScalewayEnv m, MonadIO m)
+            => Page -> PerPage -> m (Response ByteString)
+listImages' pageNumber nPerPage = listResource' pageNumber nPerPage listImage
 
-listImages :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Image])
-listImages headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listImage
+listImages :: (MonadReader ScalewayEnv m, MonadIO m)
+           => Page -> PerPage -> m (Either String [Get.Image])
+listImages pageNumber nPerPage = listResource pageNumber nPerPage listImage
 
 retrieveImage' :: (MonadReader ScalewayEnv m, MonadIO m)
                => GetImage -> m (Response ByteString)

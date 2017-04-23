@@ -20,11 +20,13 @@ import qualified Scaleway.Types.Get            as Get
 import           Scaleway.Types.Internal       (Region)
 import           Scaleway.Types.Resource       (GetToken, listToken)
 
-listTokens' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listTokens' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listToken
+listTokens' :: (MonadReader ScalewayEnv m, MonadIO m)
+            => Page -> PerPage -> m (Response ByteString)
+listTokens' pageNumber nPerPage = listResource' pageNumber nPerPage listToken
 
-listTokens :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Token])
-listTokens headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listToken
+listTokens :: (MonadReader ScalewayEnv m, MonadIO m)
+           => Page -> PerPage -> m (Either String [Get.Token])
+listTokens pageNumber nPerPage = listResource pageNumber nPerPage listToken
 
 retrieveToken' :: (MonadReader ScalewayEnv m, MonadIO m)
                => GetToken -> m (Response ByteString)

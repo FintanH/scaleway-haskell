@@ -21,11 +21,13 @@ import           Scaleway.Types.Internal       (Region)
 import           Scaleway.Types.Resource       (GetSecurityRule,
                                                 listSecurityRule)
 
-listSecurityRules' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listSecurityRules' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listSecurityRule
+listSecurityRules' :: (MonadReader ScalewayEnv m, MonadIO m)
+                   => Page -> PerPage -> m (Response ByteString)
+listSecurityRules' pageNumber nPerPage = listResource' pageNumber nPerPage listSecurityRule
 
-listSecurityRules :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.SecurityRule])
-listSecurityRules headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listSecurityRule
+listSecurityRules :: (MonadReader ScalewayEnv m, MonadIO m)
+                  => Page -> PerPage -> m (Either String [Get.SecurityRule])
+listSecurityRules pageNumber nPerPage = listResource pageNumber nPerPage listSecurityRule
 
 retrieveSecurityRule' :: (MonadReader ScalewayEnv m, MonadIO m)
                       => GetSecurityRule -> m (Response ByteString)

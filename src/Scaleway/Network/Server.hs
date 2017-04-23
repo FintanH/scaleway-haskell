@@ -33,11 +33,13 @@ import           Scaleway.Types.Internal       (CommercialType, ImageId,
 import qualified Scaleway.Types.Post           as Post
 import           Scaleway.Types.Resource       (GetServer, listServer)
 
-listServers' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listServers' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listServer
+listServers' :: (MonadReader ScalewayEnv m, MonadIO m)
+             => Page -> PerPage -> m (Response ByteString)
+listServers' pageNumber nPerPage = listResource' pageNumber nPerPage listServer
 
-listServers :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Server])
-listServers headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listServer
+listServers :: (MonadReader ScalewayEnv m, MonadIO m)
+            => Page -> PerPage -> m (Either String [Get.Server])
+listServers pageNumber nPerPage = listResource pageNumber nPerPage listServer
 
 retrieveServer' :: (MonadReader ScalewayEnv m, MonadIO m)
                 => GetServer -> m (Response ByteString)

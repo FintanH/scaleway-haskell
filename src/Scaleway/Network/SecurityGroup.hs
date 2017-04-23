@@ -21,11 +21,13 @@ import           Scaleway.Types.Internal       (Region)
 import           Scaleway.Types.Resource       (GetSecurityGroup,
                                                 listSecurityGroup)
 
-listSecurityGroups' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
-listSecurityGroups' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listSecurityGroup
+listSecurityGroups' :: (MonadReader ScalewayEnv m, MonadIO m)
+                    => Page -> PerPage -> m (Response ByteString)
+listSecurityGroups' pageNumber nPerPage = listResource' pageNumber nPerPage listSecurityGroup
 
-listSecurityGroups :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.SecurityGroup])
-listSecurityGroups headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listSecurityGroup
+listSecurityGroups :: (MonadReader ScalewayEnv m, MonadIO m)
+                   => Page -> PerPage -> m (Either String [Get.SecurityGroup])
+listSecurityGroups pageNumber nPerPage = listResource pageNumber nPerPage listSecurityGroup
 
 retrieveSecurityGroup' :: (MonadReader ScalewayEnv m, MonadIO m)
                        => GetSecurityGroup -> m (Response ByteString)
