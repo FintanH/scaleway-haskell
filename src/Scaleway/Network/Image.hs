@@ -6,11 +6,14 @@ module Scaleway.Network.Image
     , retrieveImage
     ) where
 
+import           Control.Monad.IO.Class        (MonadIO)
+import           Control.Monad.Reader          (MonadReader)
 import           Data.ByteString.Lazy      (ByteString)
 import           Network.Wreq              (Response)
 import           Scaleway.Internal.Request (HeaderToken, Page, PerPage,
                                             listResource, listResource',
                                             retrieveResource, retrieveResource')
+import           Scaleway.Internal.ScalewayEnv (ScalewayEnv)
 import qualified Scaleway.Types.Get        as Get
 import           Scaleway.Types.Internal   (Region)
 import qualified Scaleway.Types.Get        as Get
@@ -22,8 +25,10 @@ listImages' headerToken region pageNumber nPerPage = listResource' headerToken r
 listImages :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.Image])
 listImages headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listImage
 
-retrieveImage' :: HeaderToken -> Region -> GetImage -> IO (Response ByteString)
-retrieveImage' headerToken region server = retrieveResource' headerToken region server
+retrieveImage' :: (MonadReader ScalewayEnv m, MonadIO m)
+               => GetImage -> m (Response ByteString)
+retrieveImage' = retrieveResource'
 
-retrieveImage :: HeaderToken -> Region -> GetImage -> IO (Either String Get.Image)
-retrieveImage headerToken region server = retrieveResource headerToken region server
+retrieveImage :: (MonadReader ScalewayEnv m, MonadIO m)
+              => GetImage -> m (Either String Get.Image)
+retrieveImage = retrieveResource

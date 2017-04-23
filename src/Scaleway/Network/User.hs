@@ -6,15 +6,19 @@ module Scaleway.Network.User
     , retrieveUser
     ) where
 
-import           Data.ByteString.Lazy      (ByteString)
-import           Network.Wreq              (Response)
-import           Scaleway.Internal.Request (HeaderToken, Page, PerPage,
-                                            listResource, listResource',
-                                            retrieveResource, retrieveResource')
-import qualified Scaleway.Types.Get        as Get
-import           Scaleway.Types.Internal   (Region)
-import qualified Scaleway.Types.Get        as Get
-import           Scaleway.Types.Resource   (GetUser, listUser)
+import           Control.Monad.IO.Class        (MonadIO)
+import           Control.Monad.Reader          (MonadReader)
+import           Data.ByteString.Lazy          (ByteString)
+import           Network.Wreq                  (Response)
+import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
+                                                listResource, listResource',
+                                                retrieveResource,
+                                                retrieveResource')
+import           Scaleway.Internal.ScalewayEnv (ScalewayEnv)
+import qualified Scaleway.Types.Get            as Get
+import qualified Scaleway.Types.Get            as Get
+import           Scaleway.Types.Internal       (Region)
+import           Scaleway.Types.Resource       (GetUser, listUser)
 
 listUsers' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
 listUsers' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listUser
@@ -22,8 +26,10 @@ listUsers' headerToken region pageNumber nPerPage = listResource' headerToken re
 listUsers :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.User])
 listUsers headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listUser
 
-retrieveUser' :: HeaderToken -> Region -> GetUser -> IO (Response ByteString)
-retrieveUser' headerToken region user = retrieveResource' headerToken region user
+retrieveUser' :: (MonadReader ScalewayEnv m, MonadIO m)
+              => GetUser -> m (Response ByteString)
+retrieveUser' = retrieveResource'
 
-retrieveUser :: HeaderToken -> Region -> GetUser -> IO (Either String Get.User)
-retrieveUser headerToken region user = retrieveResource headerToken region user
+retrieveUser :: (MonadReader ScalewayEnv m, MonadIO m)
+            => GetUser -> m (Either String Get.User)
+retrieveUser = retrieveResource

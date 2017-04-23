@@ -6,15 +6,20 @@ module Scaleway.Network.SecurityRule
     , retrieveSecurityRule
     ) where
 
-import           Data.ByteString.Lazy      (ByteString)
-import           Network.Wreq              (Response)
-import           Scaleway.Internal.Request (HeaderToken, Page, PerPage,
-                                            listResource, listResource',
-                                            retrieveResource, retrieveResource')
-import qualified Scaleway.Types.Get        as Get
-import           Scaleway.Types.Internal   (Region)
-import qualified Scaleway.Types.Get        as Get
-import           Scaleway.Types.Resource   (GetSecurityRule, listSecurityRule)
+import           Control.Monad.IO.Class        (MonadIO)
+import           Control.Monad.Reader          (MonadReader)
+import           Data.ByteString.Lazy          (ByteString)
+import           Network.Wreq                  (Response)
+import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
+                                                listResource, listResource',
+                                                retrieveResource,
+                                                retrieveResource')
+import           Scaleway.Internal.ScalewayEnv (ScalewayEnv)
+import qualified Scaleway.Types.Get            as Get
+import qualified Scaleway.Types.Get            as Get
+import           Scaleway.Types.Internal       (Region)
+import           Scaleway.Types.Resource       (GetSecurityRule,
+                                                listSecurityRule)
 
 listSecurityRules' :: HeaderToken -> Region -> Page -> PerPage -> IO (Response ByteString)
 listSecurityRules' headerToken region pageNumber nPerPage = listResource' headerToken region pageNumber nPerPage listSecurityRule
@@ -22,8 +27,10 @@ listSecurityRules' headerToken region pageNumber nPerPage = listResource' header
 listSecurityRules :: HeaderToken -> Region -> Page -> PerPage -> IO (Either String [Get.SecurityRule])
 listSecurityRules headerToken region pageNumber nPerPage = listResource headerToken region pageNumber nPerPage listSecurityRule
 
-retrieveSecurityRule' :: HeaderToken -> Region -> GetSecurityRule -> IO (Response ByteString)
-retrieveSecurityRule' headerToken region securityRule = retrieveResource' headerToken region securityRule
+retrieveSecurityRule' :: (MonadReader ScalewayEnv m, MonadIO m)
+                      => GetSecurityRule -> m (Response ByteString)
+retrieveSecurityRule' = retrieveResource'
 
-retrieveSecurityRule :: HeaderToken -> Region -> GetSecurityRule -> IO (Either String Get.SecurityRule)
-retrieveSecurityRule headerToken region securityRule = retrieveResource headerToken region securityRule
+retrieveSecurityRule :: (MonadReader ScalewayEnv m, MonadIO m)
+                    => GetSecurityRule -> m (Either String Get.SecurityRule)
+retrieveSecurityRule = retrieveResource
