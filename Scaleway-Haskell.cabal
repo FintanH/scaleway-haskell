@@ -26,6 +26,9 @@ library
                      , Scaleway.Network.SecurityGroup
                      , Scaleway.Network.SecurityRule
                      , Scaleway.Network.Token
+                     , Scaleway.Internal.Types.Server
+                     , Scaleway.Internal.Types.Volume
+                     , Scaleway.Internal.Types
   other-modules:       Scaleway.Internal.Request
                     ,  Scaleway.Internal.Utility
                     ,  Scaleway.Network.Snapshot
@@ -44,7 +47,7 @@ library
                      , wreq
                      , mtl
   default-language:    Haskell2010
-  default-extensions:  OverloadedStrings, FlexibleContexts
+  default-extensions:  OverloadedStrings, FlexibleContexts, DeriveGeneric, RecordWildCards
 
 source-repository head
   type:     git
