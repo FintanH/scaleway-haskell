@@ -1,12 +1,6 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 
-module Scaleway.Internal.Types.Server
-    ( ServerName
-    , ServerBase (..)
-    , BootScript
-    , PublicIp
-    , ServerState
-    , parseServerBase
-    ) where
+module Scaleway.Internal.Types.Server where
 
 import           Data.Aeson                (FromJSON, ToJSON, genericParseJSON,
                                             parseJSON, Value (..), (.:), (.:?), withObject, withText)
@@ -16,6 +10,7 @@ import           Data.Text                 (Text, unpack)
 import           GHC.Generics
 import           Scaleway.Internal.Utility (jsonCamelCase)
 import Data.Monoid ((<>))
+import Scaleway.Internal.Types.ResourceId (ServerId, parseServerId)
 
 type ServerName = Text
 
@@ -27,6 +22,17 @@ data ServerBase org image tags = ServerBase {
     , tags           :: tags
     , enableIpv6     :: Maybe Bool
 } deriving (Show, Eq, Generic)
+
+data ServerRef = ServerRef {
+    serverId :: ServerId
+  , name     :: ServerName
+} deriving (Show, Eq)
+
+instance FromJSON ServerRef where
+  parseJSON = withObject "server ref" $ \o -> do
+    serverId <- parseServerId (Object o)
+    name <- o .: "name"
+    return ServerRef {..}
 
 data BootScript = BootScript {
     kernel         :: Text

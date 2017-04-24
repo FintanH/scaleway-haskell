@@ -11,57 +11,76 @@ module Scaleway.Internal.Types
 import           Data.Aeson                     (FromJSON, ToJSON,
                                                  genericParseJSON, parseJSON,
                                                  toJSON, withObject, (.:), (.:?), Value (..), withText)
+import Control.Applicative ((<|>), liftA2)
 import           Data.Aeson.Types               (Options (..), defaultOptions, Parser)
 import qualified Data.HashMap.Strict            as HM
 import           Data.Text                      (Text, unpack)
 import Data.Monoid ((<>))
 import           Data.Time.Clock                (UTCTime)
 import           GHC.Generics
-import           Scaleway.Internal.Types.Server (BootScript, PublicIp,
-                                                 ServerBase (..), ServerName,
-                                                 ServerState, parseServerBase)
-import           Scaleway.Internal.Types.Volume (VolumeBase (..), VolumeName, parseVolumeBase)
+import           Scaleway.Internal.Types.Image
+import           Scaleway.Internal.Types.SecurityGroup
+import           Scaleway.Internal.Types.SecurityRule
+import           Scaleway.Internal.Types.Server
+import           Scaleway.Internal.Types.Volume
 import           Scaleway.Internal.Utility      (jsonCamelCase)
-
-class HasResourceId f a where
-  getResourceId :: f -> a
-
-newtype ResourceId a = ResourceId { unResourceId :: a }
-  deriving (Show, Eq, Generic)
-
-instance HasResourceId (ResourceId a) a where
-  getResourceId = unResourceId
-
-parseResourceId :: (FromJSON a) => Text -> (Value -> Parser (ResourceId a))
-parseResourceId key = withObject
-                     ("resource id with key: " <> unpack key)
-                     (fmap ResourceId . (.: key))
-
-parseResourceIdDefault :: (FromJSON a) => Value -> Parser (ResourceId a)
-parseResourceIdDefault = parseResourceId "id"
-
-instance (ToJSON a) => ToJSON (ResourceId a)
-
-type ScalewayId = ResourceId Text
+import Scaleway.Internal.Types.ResourceId
 
 newtype Tag = Tag Text deriving (Show, Eq, ToJSON, FromJSON)
 
-data ServerRef = ServerRef {
-    serverId :: ScalewayId
-  , name     :: ServerName
-} deriving (Show, Eq, Generic)
+type ImagePost = ImageBase OrganizationId VolumeRef
+data ImageGet = ImageGet {
+    image            :: ImageBase OrganizationId VolumeRef
+  , creationDate     :: UTCTime
+  , extraVolumes     :: Text
+  , fromImage        :: Maybe Text
+  , fromServer       :: Maybe Text
+  , marketplaceKey   :: Maybe Text
+  , modificationDate :: UTCTime
+  , public           :: Bool
+} deriving (Show, Eq)
 
-instance FromJSON ServerRef where
-  parseJSON = withObject "server ref" $ \o -> do
-    serverId <- parseResourceIdDefault (Object o)
-    name <- o .: "name"
-    return ServerRef {..}
+instance FromJSON ImageGet where
+  parseJSON = withObject "image GET response" $ \o -> do
+    let object = (Object o)
+    image <- parseJSON object -- bit of a cheat here since ImagePost is the same type as ImageBase OrganizationId VolumeRef
+    creationDate <- o .: "creation_date"
+    extraVolumes <- o .: "extra_volumes"
+    fromImage <- o .:? "from_image"
+    fromServer <- o .:? "from_server"
+    marketplaceKey <- o .:? "marketplace_key"
+    modificationDate <- o .: "modification_date"
+    public <- o .: "public"
+    return ImageGet {..}
 
-type ServerPost = ServerBase ScalewayId ScalewayId [Tag]
+instance FromJSON ImagePost where
+  parseJSON = parseImageBase parseOrganizationId volRef
+    where
+      volRef :: Value -> Parser VolumeRef
+      volRef = withObject "volume ref" $ \o -> parseJSON =<< o .: "volume"
 
+type SecurityGroupPost = SecurityGroupBase OrganizationId
+data SecurityGroupGet = SecurityGroupGet {
+    securityGroup         :: SecurityGroupBase OrganizationId
+  , securityGroupId       :: SecurityGroupId
+  , enableDefaultSecurity :: Bool
+  , organizationDefault   :: Bool
+  , servers               :: [ServerRef]
+} deriving (Show, Eq)
+
+instance FromJSON SecurityGroupGet where
+  parseJSON = withObject "security group GET response" $ \o -> do
+    securityGroup <- parseSecurityGroupBase parseOrganizationId (Object o)
+    securityGroupId <- parseSecurityGroupId (Object o)
+    enableDefaultSecurity <- o .: "enable_default_security"
+    organizationDefault <- o .: "organization_default"
+    servers <- traverse parseJSON =<< o .: "servers"
+    return SecurityGroupGet {..}
+
+type ServerPost = ServerBase OrganizationId ImageId [Tag]
 data ServerGet = ServerGet {
-    server     :: ServerBase ScalewayId (Maybe ImageRef) [Tag]
-  , serverId   :: ScalewayId
+    server     :: ServerBase OrganizationId (Maybe ImageRef) [Tag]
+  , serverId   :: ServerId
   , bootscript :: Maybe BootScript
   , privateIp  :: Maybe Text
   , publicIp   :: Maybe PublicIp
@@ -72,8 +91,8 @@ data ServerGet = ServerGet {
 instance FromJSON ServerGet where
   parseJSON = withObject "server GET request" $ \o -> do
     let object = (Object o)
-    server <- parseServerBase orgParser imageParser tagsParser object
-    serverId <- parseResourceIdDefault object
+    server <- parseServerBase parseOrganizationId imageParser tagsParser object
+    serverId <- parseServerId object
     bootscript <- o .: "bootscript" >>= parseJSON
     privateIp <- o .:? "private_ip"
     publicIp <- o .: "public_ip" >>= parseJSON
@@ -81,53 +100,28 @@ instance FromJSON ServerGet where
     volumes <- o .: "volumes" >>= parseJSON
     return ServerGet {..}
     where
-      orgParser = withObject "organization id" (parseResourceId "organization" . Object)
-      imageParser = withObject "server image ref" $ \o -> do
-        image <- o .: "image"
-        parseJSON (Object image)
-
       tagsParser = withObject "server tags" (.: "tags")
+      imageParser = withObject "image ref" $ \o -> do
+        image <- o .: "image"
+        parseJSON image
 
-data ImageRef = ImageRef {
-    imageId   :: ScalewayId
-  , imageName :: Text
-} deriving (Show, Eq, Generic)
-
-instance FromJSON ImageRef where
-  parseJSON = withObject "image ref" $ \o -> do
-    imageId <- parseResourceIdDefault (Object o)
-    imageName <- o .: "name"
-    return ImageRef {..}
-
-instance ToJSON ImageRef
-
-type VolumePost = VolumeBase ScalewayId
-
+type VolumePost = VolumeBase OrganizationId
 data VolumeGet = VolumeGet {
-    volume           :: VolumeBase ScalewayId
-  , volumeId         :: ScalewayId
+    volume           :: VolumeBase OrganizationId
+  , volumeId         :: VolumeId
   , modificationDate :: Maybe UTCTime
   , creationDate     :: Maybe UTCTime
   , exportURI        :: Maybe Text
   , server           :: Maybe ServerRef
 } deriving (Show, Eq, Generic)
 
-instance HasResourceId ServerRef Text where
-  getResourceId (ServerRef serverId _) = getResourceId serverId
-
-instance HasResourceId ImageRef Text where
-  getResourceId (ImageRef imageId _) = getResourceId imageId
-
-
 instance FromJSON VolumeGet where
   parseJSON = withObject "volume GET response" $ \o -> do
     let object = Object o
-    volume <- parseVolumeBase parseOrg object
-    volumeId <- parseResourceIdDefault object
+    volume <- parseVolumeBase parseOrganizationId object
+    volumeId <- parseVolumeId object
     modificationDate <- o .:? "modification_date"
     creationDate <- o .:? "creation_date"
     exportURI <- o .: "export_uri"
     server <- o .: "server" >>= parseJSON
     return VolumeGet {..}
-    where
-      parseOrg = withObject "volume organization" (parseResourceId "organization" . Object)
