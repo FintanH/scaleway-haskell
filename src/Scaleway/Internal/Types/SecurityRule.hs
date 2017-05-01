@@ -35,8 +35,8 @@ data SecurityRuleBase = SecurityRuleBase {
   , ipRange   :: Text
 } deriving (Show, Eq)
 
-type SecurityRulePost = SecurityRuleBase
-data SecurityRuleGet = SecurityRuleGet {
+type SecurityRuleData = SecurityRuleBase
+data SecurityRule = SecurityRule {
     securityRule   :: SecurityRuleBase
   , securityRuleId :: SecurityRuleId
   , destPortFrom   :: Maybe Int
@@ -53,7 +53,7 @@ instance FromJSON SecurityRuleBase where
     ipRange <- o .: "ip_range"
     return SecurityRuleBase {..}
 
-instance FromJSON SecurityRuleGet where
+instance FromJSON SecurityRule where
   parseJSON = withObject "security rule GET response" $ \o -> do
     securityRule <- parseJSON (Object o)
     securityRuleId <- parseSecurityRuleId (Object o)
@@ -61,4 +61,4 @@ instance FromJSON SecurityRuleGet where
     destPortTo <- o .:? "dest_port_to"
     position <- o .: "position"
     editable <- o .:? "editable"
-    return SecurityRuleGet {..}
+    return SecurityRule {..}

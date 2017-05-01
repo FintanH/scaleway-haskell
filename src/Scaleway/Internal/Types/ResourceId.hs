@@ -3,6 +3,7 @@
 
 module Scaleway.Internal.Types.ResourceId
     ( HasResourceId (..)
+    , ResourceId (..)
     , ImageId
     , OrganizationId
     , SecurityGroupId

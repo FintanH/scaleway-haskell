@@ -25,20 +25,18 @@ import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
                                                 removeResource,
                                                 scalewayHeader, unUrl)
 import           Scaleway.Internal.ScalewayEnv (ScalewayEnv)
-import qualified Scaleway.Types.Get            as Get
-import qualified Scaleway.Types.Get            as Get
-import           Scaleway.Types.Internal       (CommercialType, ImageId,
+import           Scaleway.Types.Internal       (ImageId,
                                                 OrganizationId, Region,
                                                 ServerId (..), Tag)
-import qualified Scaleway.Types.Post           as Post
 import           Scaleway.Types.Resource       (GetServer, listServer)
+import Scaleway.Internal.Types (Server, mkServerData, CommercialType)
 
 listServers' :: (MonadReader ScalewayEnv m, MonadIO m)
              => Page -> PerPage -> m (Response ByteString)
 listServers' pageNumber nPerPage = listResource' pageNumber nPerPage listServer
 
 listServers :: (MonadReader ScalewayEnv m, MonadIO m)
-            => Page -> PerPage -> m (Either String [Get.Server])
+            => Page -> PerPage -> m (Either String [Server])
 listServers pageNumber nPerPage = listResource pageNumber nPerPage listServer
 
 retrieveServer' :: (MonadReader ScalewayEnv m, MonadIO m)
@@ -46,7 +44,7 @@ retrieveServer' :: (MonadReader ScalewayEnv m, MonadIO m)
 retrieveServer' = retrieveResource'
 
 retrieveServer :: (MonadReader ScalewayEnv m, MonadIO m)
-               => GetServer -> m (Either String Get.Server)
+               => GetServer -> m (Either String Server)
 retrieveServer = retrieveResource
 
 createServer :: (MonadReader ScalewayEnv m, MonadIO m)
@@ -55,10 +53,10 @@ createServer :: (MonadReader ScalewayEnv m, MonadIO m)
              -> ImageId         -- | Text ID of the Image
              -> CommercialType  -- | Commercial Type of the machine
              -> [Tag]           -- | List of Tags to assign to the machine
-             -> Bool            -- | Enable IPv6
-             -> m (Either String Get.Server)
+             -> Maybe Bool            -- | Enable IPv6
+             -> m (Either String Server)
 createServer name organization image commercialType tags enableIpv6 = do
-  r <- createResource' Post.Server{..} "servers"
+  r <- createResource' (mkServerData name organization image commercialType tags enableIpv6) "servers"
   return $ parseEither parseServer =<< (eitherDecode $ r ^. responseBody :: Either String Value)
   where
     parseServer = withObject "server" $ \o -> do

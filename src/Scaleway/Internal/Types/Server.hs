@@ -18,7 +18,7 @@ data ServerBase org image tags = ServerBase {
       name           :: ServerName
     , organization   :: org
     , image          :: image
-    , commercialType :: Maybe CommercialType
+    , commercialType :: CommercialType
     , tags           :: tags
     , enableIpv6     :: Maybe Bool
 } deriving (Show, Eq, Generic)
@@ -115,7 +115,7 @@ parseServerBase orgParser imageParser tagsParser = withObject "server base" $ \o
   name <- o .: "name"
   organization <- orgParser object
   image <- imageParser object
-  commercialType <- o .:? "commercial_type"
+  commercialType <- o .: "commercial_type"
   tags <- tagsParser object
   enableIpv6 <- o .:? "enable_ipv6"
   return ServerBase {..}
