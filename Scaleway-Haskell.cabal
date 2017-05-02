@@ -16,7 +16,6 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Scaleway
-                     , Scaleway.Types
                      , Scaleway.Network
                      , Scaleway.Network.Server
                      , Scaleway.Network.Volume
@@ -27,8 +26,7 @@ library
                      , Scaleway.Network.SecurityRule
                      , Scaleway.Network.Snapshot
                      , Scaleway.Network.Token
-                     , Scaleway.Network.User
-  other-modules:       Scaleway.Internal.Request
+  other-modules:      Scaleway.Internal.Request
                     , Scaleway.Internal.Types
                     , Scaleway.Internal.Types.Server
                     , Scaleway.Internal.Types.Volume
