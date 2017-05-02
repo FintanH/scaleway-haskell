@@ -14,18 +14,14 @@ import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
                                                 listResource, listResource',
                                                 retrieveResource,
                                                 retrieveResource')
-import           Scaleway.Internal.ScalewayEnv (ScalewayEnv)
-import qualified Scaleway.Types.Get            as Get
-import qualified Scaleway.Types.Get            as Get
-import           Scaleway.Types.Internal       (Region)
-import           Scaleway.Types.Resource       (GetUser, listUser)
+import           Scaleway.Internal.Types   (GetUser, User, ScalewayEnv, listUser)
 
 listUsers' :: (MonadReader ScalewayEnv m, MonadIO m)
            => Page -> PerPage -> m (Response ByteString)
 listUsers' pageNumber nPerPage = listResource' pageNumber nPerPage listUser
 
 listUsers :: (MonadReader ScalewayEnv m, MonadIO m)
-          => Page -> PerPage -> m (Either String [Get.User])
+          => Page -> PerPage -> m (Either String [User])
 listUsers pageNumber nPerPage = listResource pageNumber nPerPage listUser
 
 retrieveUser' :: (MonadReader ScalewayEnv m, MonadIO m)
@@ -33,5 +29,5 @@ retrieveUser' :: (MonadReader ScalewayEnv m, MonadIO m)
 retrieveUser' = retrieveResource'
 
 retrieveUser :: (MonadReader ScalewayEnv m, MonadIO m)
-            => GetUser -> m (Either String Get.User)
+            => GetUser -> m (Either String User)
 retrieveUser = retrieveResource

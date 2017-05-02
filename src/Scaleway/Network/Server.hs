@@ -24,12 +24,9 @@ import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
                                                 retrieveResource',
                                                 removeResource,
                                                 scalewayHeader, unUrl)
-import           Scaleway.Internal.ScalewayEnv (ScalewayEnv)
-import           Scaleway.Types.Internal       (ImageId,
+import Scaleway.Internal.Types (Server, mkServerData, CommercialType, ScalewayEnv, GetServer, listServer,ImageId,
                                                 OrganizationId, Region,
                                                 ServerId (..), Tag)
-import           Scaleway.Types.Resource       (GetServer, listServer)
-import Scaleway.Internal.Types (Server, mkServerData, CommercialType)
 
 listServers' :: (MonadReader ScalewayEnv m, MonadIO m)
              => Page -> PerPage -> m (Response ByteString)

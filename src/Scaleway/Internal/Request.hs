@@ -16,11 +16,10 @@ import           Data.Text               (pack, unpack)
 import           Network.Wreq            (Options, Response, defaults,
                                           deleteWith, getWith, header, param,
                                           postWith, responseBody)
-import           Scaleway.Types.Internal hiding (HasResourceId)
-import Scaleway.Types.Resource (HasResourceId(..), HasResourceName(..))
+import Scaleway.Internal.Types.Get (HasResourceId(..), HasResourceName(..))
 import Control.Monad.Reader (MonadReader, ask)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Scaleway.Internal.ScalewayEnv (ScalewayEnv (..))
+import Scaleway.Internal.Types (ScalewayEnv (..), Region)
 
 newtype ScalewayUrl = ScalewayUrl { unUrl :: String } deriving (Show, Eq)
 type HeaderToken = BS.ByteString

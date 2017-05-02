@@ -13,18 +13,14 @@ import           Network.Wreq              (Response)
 import           Scaleway.Internal.Request (HeaderToken, Page, PerPage,
                                             listResource, listResource',
                                             retrieveResource, retrieveResource')
-import           Scaleway.Internal.ScalewayEnv (ScalewayEnv)
-import qualified Scaleway.Types.Get        as Get
-import           Scaleway.Types.Internal   (Region)
-import qualified Scaleway.Types.Get        as Get
-import           Scaleway.Types.Resource   (GetImage, listImage)
+import           Scaleway.Internal.Types   (Region, Image, ScalewayEnv, GetImage, listImage)
 
 listImages' :: (MonadReader ScalewayEnv m, MonadIO m)
             => Page -> PerPage -> m (Response ByteString)
 listImages' pageNumber nPerPage = listResource' pageNumber nPerPage listImage
 
 listImages :: (MonadReader ScalewayEnv m, MonadIO m)
-           => Page -> PerPage -> m (Either String [Get.Image])
+           => Page -> PerPage -> m (Either String [Image])
 listImages pageNumber nPerPage = listResource pageNumber nPerPage listImage
 
 retrieveImage' :: (MonadReader ScalewayEnv m, MonadIO m)
@@ -32,5 +28,5 @@ retrieveImage' :: (MonadReader ScalewayEnv m, MonadIO m)
 retrieveImage' = retrieveResource'
 
 retrieveImage :: (MonadReader ScalewayEnv m, MonadIO m)
-              => GetImage -> m (Either String Get.Image)
+              => GetImage -> m (Either String Image)
 retrieveImage = retrieveResource

@@ -25,11 +25,15 @@ module Scaleway.Internal.Types
     , RoleType (..)
     , Role (..)
     , CommercialType (..)
+    , Region (..)
+    , ScalewayEnv (..)
+    , module Scaleway.Internal.Types.Get
+    , module Scaleway.Internal.Types.ResourceId
     ) where
 
 import           Data.Aeson                     (FromJSON, ToJSON,
                                                  genericParseJSON, parseJSON,
-                                                 toJSON, withObject, (.:), (.:?), Value (..), withText)
+                                                 toJSON, withObject, (.:), (.:?), Value (..), withText, (.=), object)
 import Control.Applicative ((<|>), liftA2)
 import           Data.Aeson.Types               (Options (..), defaultOptions, Parser)
 import qualified Data.HashMap.Strict            as HM
@@ -45,6 +49,27 @@ import           Scaleway.Internal.Types.Volume
 import           Scaleway.Internal.Types.Snapshot
 import           Scaleway.Internal.Utility      (jsonCamelCase)
 import Scaleway.Internal.Types.ResourceId
+import Scaleway.Internal.Types.Get
+
+import qualified Data.ByteString as BS
+
+type HeaderToken = BS.ByteString
+
+data ScalewayEnv = ScalewayEnv {
+    authToken :: HeaderToken
+  , region    :: Region
+}
+
+data Region =
+    Paris
+  | Amsterdam
+  deriving (Eq)
+
+instance Show Region where
+  show r =
+    case r of
+      Paris -> "par1"
+      Amsterdam -> "ams1"
 
 newtype Tag = Tag Text deriving (Show, Eq, ToJSON, FromJSON)
 
@@ -164,6 +189,19 @@ instance FromJSON Server where
         image <- o .: "image"
         parseJSON image
 
+        -- name           :: ServerName
+        -- , organization   :: org
+        -- , image          :: image
+        -- , commercialType :: CommercialType
+        -- , tags           :: tags
+        -- , enableIpv6     :: Maybe Bool
+instance ToJSON ServerData where
+  toJSON ServerBase {..} = object [
+      "organization" .= toJSON (unResourceId organization),
+      "image" .= image,
+      "commercial_type" .= commercialType,
+      "tags" .= tags,
+      "enable_ipv6" .= enableIpv6 ]
 
 type SnapshotData = SnapshotBase OrganizationId VolumeId
 data Snapshot = Snapshot {

@@ -98,14 +98,6 @@ data CommercialType = VC1S
 instance FromJSON CommercialType
 instance ToJSON CommercialType
 
--- | Instances
-instance (FromJSON org, FromJSON image, FromJSON tags)
-      => FromJSON (ServerBase org image tags) where
-  parseJSON = genericParseJSON opts . jsonCamelCase
-    where
-      opts = defaultOptions { fieldLabelModifier = modifyNames }
-      modifyNames x            = x
-
 parseServerBase :: (Value -> Parser org)
                 -> (Value -> Parser image)
                 -> (Value -> Parser tags)
@@ -119,6 +111,3 @@ parseServerBase orgParser imageParser tagsParser = withObject "server base" $ \o
   tags <- tagsParser object
   enableIpv6 <- o .:? "enable_ipv6"
   return ServerBase {..}
-
-instance (ToJSON org, ToJSON image, ToJSON tags)
-      => ToJSON (ServerBase org image tags)

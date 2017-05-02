@@ -25,7 +25,8 @@ module Scaleway.Internal.Types.ResourceId
     ) where
 
 import           Control.Applicative (liftA2, (<|>))
-import           Data.Aeson          (FromJSON, Value, withObject, (.:))
+import           Data.Aeson          (FromJSON, ToJSON, Value, toJSON,
+                                      withObject, (.:))
 import           Data.Aeson.Types    (Parser)
 import           Data.Monoid         ((<>))
 import           Data.Text           (Text, unpack)
@@ -42,6 +43,9 @@ instance HasResourceId (ResourceId a) a where
 parseResourceId :: (FromJSON a) => Text -> Value -> Parser (ResourceId a)
 parseResourceId altKey = withObject (unpack $ altKey <> " id")
                                     (fmap ResourceId . liftA2 (<|>) (.: altKey) (.: "id"))
+
+instance ToJSON a => ToJSON (ResourceId a) where
+  toJSON = toJSON . unResourceId
 
 type ImageId = ResourceId Text
 type OrganizationId = ResourceId Text

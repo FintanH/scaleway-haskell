@@ -14,19 +14,14 @@ import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
                                                 listResource, listResource',
                                                 retrieveResource,
                                                 retrieveResource')
-import           Scaleway.Internal.ScalewayEnv (ScalewayEnv)
-import qualified Scaleway.Types.Get            as Get
-import qualified Scaleway.Types.Get            as Get
-import           Scaleway.Types.Internal       (Region)
-import           Scaleway.Types.Resource       (GetSecurityGroup,
-                                                listSecurityGroup)
+import           Scaleway.Internal.Types   (GetSecurityGroup, SecurityGroup, ScalewayEnv, listSecurityGroup)
 
 listSecurityGroups' :: (MonadReader ScalewayEnv m, MonadIO m)
                     => Page -> PerPage -> m (Response ByteString)
 listSecurityGroups' pageNumber nPerPage = listResource' pageNumber nPerPage listSecurityGroup
 
 listSecurityGroups :: (MonadReader ScalewayEnv m, MonadIO m)
-                   => Page -> PerPage -> m (Either String [Get.SecurityGroup])
+                   => Page -> PerPage -> m (Either String [SecurityGroup])
 listSecurityGroups pageNumber nPerPage = listResource pageNumber nPerPage listSecurityGroup
 
 retrieveSecurityGroup' :: (MonadReader ScalewayEnv m, MonadIO m)
@@ -34,5 +29,5 @@ retrieveSecurityGroup' :: (MonadReader ScalewayEnv m, MonadIO m)
 retrieveSecurityGroup' = retrieveResource'
 
 retrieveSecurityGroup :: (MonadReader ScalewayEnv m, MonadIO m)
-                      => GetSecurityGroup -> m (Either String Get.SecurityGroup)
+                      => GetSecurityGroup -> m (Either String SecurityGroup)
 retrieveSecurityGroup = retrieveResource

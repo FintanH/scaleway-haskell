@@ -1,14 +1,14 @@
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE KindSignatures         #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE PolyKinds              #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds             #-}
 
-module Scaleway.Types.Resource
-    ( HasResourceId(..)
-    , HasResourceName(..)
+module Scaleway.Internal.Types.Get
+    ( HasResourceName(..)
+    , HasResourceId (..)
     , GetServer
     , GetVolume
     , GetImage
@@ -38,13 +38,14 @@ module Scaleway.Types.Resource
     , listToken
     ) where
 
-import           Data.Text               (Text)
-import qualified Scaleway.Types.Get      as Get
-import           Scaleway.Types.Internal (ImageId (..), OrganizationId (..),
-                                          SecurityGroupId (..),
-                                          SecurityRuleId (..), ServerId (..),
-                                          SnapshotId (..), TokenId (..),
-                                          UserId (..), VolumeId (..))
+import           Data.Text                          (Text)
+import           Scaleway.Internal.Types.ResourceId (HasResourceId (..),
+                                                     ImageId, OrganizationId,
+                                                     ResourceId (..),
+                                                     SecurityGroupId,
+                                                     SecurityRuleId, ServerId,
+                                                     SnapshotId, TokenId,
+                                                     UserId, VolumeId)
 
 data ResourceType = ServerResource
                   | VolumeResource
@@ -55,9 +56,6 @@ data ResourceType = ServerResource
                   | SecurityGroupResource
                   | SecurityRuleResource
                   | TokenResource
-
-class HasResourceId f a where
-  getResourceId :: f -> a
 
 class HasResourceName f a where
   getResourceNamePlural   :: f -> a
@@ -98,61 +96,58 @@ type GetSecurityRule = GET (GetResource SecurityRuleId) SecurityRuleResource
 type GetToken = GET (GetResource TokenId) TokenResource
 
 getServer :: Text -> GetServer
-getServer = GetServerR . ServerId
+getServer = GetServerR . ResourceId
 
 listServer :: GET ListResource ServerResource
 listServer = ListServerR
 
 getVolume :: Text -> GetVolume
-getVolume = GetVolumeR . VolumeId
+getVolume = GetVolumeR . ResourceId
 
 listVolume :: GET ListResource VolumeResource
 listVolume = ListVolumeR
 
 getImage :: Text -> GetImage
-getImage = GetImageR . ImageId
+getImage = GetImageR . ResourceId
 
 listImage :: GET ListResource ImageResource
 listImage = ListImageR
 
 getOrganization :: Text -> GetOrganization
-getOrganization = GetOrganizationR . OrganizationId
+getOrganization = GetOrganizationR . ResourceId
 
 listOrganization :: GET ListResource OrganizationResource
 listOrganization = ListOrganizationR
 
 getUser :: Text -> GetUser
-getUser = GetUserR . UserId
+getUser = GetUserR . ResourceId
 
 listUser :: GET ListResource UserResource
 listUser = ListUserR
 
 getSnapshot :: Text -> GetSnapshot
-getSnapshot = GetSnapshotR . SnapshotId
+getSnapshot = GetSnapshotR . ResourceId
 
 listSnapshot :: GET ListResource SnapshotResource
 listSnapshot = ListSnapshotR
 
 getSecurityGroup :: Text -> GetSecurityGroup
-getSecurityGroup = GetSecurityGroupR . SecurityGroupId
+getSecurityGroup = GetSecurityGroupR . ResourceId
 
 listSecurityGroup :: GET ListResource SecurityGroupResource
 listSecurityGroup = ListSecurityGroupR
 
 getSecurityRule :: Text -> GetSecurityRule
-getSecurityRule = GetSecurityRuleR . SecurityRuleId
+getSecurityRule = GetSecurityRuleR . ResourceId
 
 listSecurityRule :: GET ListResource SecurityRuleResource
 listSecurityRule = ListSecurityRuleR
 
 getToken :: Text -> GetToken
-getToken = GetTokenR . TokenId
+getToken = GetTokenR . ResourceId
 
 listToken :: GET ListResource TokenResource
 listToken = ListTokenR
-
-instance HasResourceId ServerId Text where
-  getResourceId (ServerId serverId) = serverId
 
 instance HasResourceId GetServer Text where
   getResourceId (GetServerR serverId) = getResourceId serverId
@@ -164,9 +159,6 @@ instance HasResourceName GetServer String where
 instance HasResourceName (GET ListResource ServerResource) String where
   getResourceNamePlural   _ = "servers"
   getResourceNameSingular _ = "server"
-
-instance HasResourceId VolumeId Text where
-  getResourceId (VolumeId volumeId) = volumeId
 
 instance HasResourceId GetVolume Text where
   getResourceId (GetVolumeR volumeId) = getResourceId volumeId
@@ -180,7 +172,7 @@ instance HasResourceName (GET ListResource VolumeResource) String where
   getResourceNameSingular _ = "volumes"
 
 instance HasResourceId GetImage Text where
-  getResourceId (GetImageR (ImageId imageId)) = imageId
+  getResourceId (GetImageR imageId) = getResourceId imageId
 
 instance HasResourceName GetImage String where
   getResourceNamePlural   _ = "images"
@@ -191,7 +183,7 @@ instance HasResourceName (GET ListResource ImageResource) String where
   getResourceNameSingular _ = "image"
 
 instance HasResourceId GetOrganization Text where
-  getResourceId (GetOrganizationR (OrganizationId organizationId)) = organizationId
+  getResourceId (GetOrganizationR organizationId) = getResourceId organizationId
 
 instance HasResourceName GetOrganization String where
   getResourceNamePlural   _ = "organizations"
@@ -202,7 +194,7 @@ instance HasResourceName (GET ListResource OrganizationResource) String where
   getResourceNameSingular _ = "organization"
 
 instance HasResourceId GetUser Text where
-  getResourceId (GetUserR (UserId userId)) = userId
+  getResourceId (GetUserR userId) = getResourceId userId
 
 instance HasResourceName GetUser String where
   getResourceNamePlural   _ = "users"
@@ -213,7 +205,7 @@ instance HasResourceName (GET ListResource UserResource) String where
   getResourceNameSingular _ = "user"
 
 instance HasResourceId GetSnapshot Text where
-  getResourceId (GetSnapshotR (SnapshotId snapshotId)) = snapshotId
+  getResourceId (GetSnapshotR snapshotId) = getResourceId snapshotId
 
 instance HasResourceName GetSnapshot String where
   getResourceNamePlural   _ = "snapshots"
@@ -224,7 +216,7 @@ instance HasResourceName (GET ListResource SnapshotResource) String where
   getResourceNameSingular _ = "snapshot"
 
 instance HasResourceId GetSecurityGroup Text where
-  getResourceId (GetSecurityGroupR (SecurityGroupId securityGroupId)) = securityGroupId
+  getResourceId (GetSecurityGroupR securityGroupId) = getResourceId securityGroupId
 
 instance HasResourceName GetSecurityGroup String where
   getResourceNamePlural   _ = "security_groups"
@@ -235,7 +227,7 @@ instance HasResourceName (GET ListResource SecurityGroupResource) String where
   getResourceNameSingular _ = "security_group"
 
 instance HasResourceId GetSecurityRule Text where
-  getResourceId (GetSecurityRuleR (SecurityRuleId securityRuleId)) = securityRuleId
+  getResourceId (GetSecurityRuleR securityRuleId) = getResourceId securityRuleId
 
 instance HasResourceName GetSecurityRule String where
   getResourceNamePlural   _ = "security_rules"
@@ -246,7 +238,7 @@ instance HasResourceName (GET ListResource SecurityRuleResource) String where
   getResourceNameSingular _ = "security_rule"
 
 instance HasResourceId GetToken Text where
-  getResourceId (GetTokenR (TokenId tokenId)) = tokenId
+  getResourceId (GetTokenR tokenId) = getResourceId tokenId
 
 instance HasResourceName GetToken String where
   getResourceNamePlural   _ = "tokens"

@@ -14,17 +14,14 @@ import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
                                                 listResource, listResource',
                                                 retrieveResource,
                                                 retrieveResource')
-import           Scaleway.Internal.ScalewayEnv (ScalewayEnv)
-import qualified Scaleway.Types.Get            as Get
-import           Scaleway.Types.Internal       (Region)
-import           Scaleway.Types.Resource       (GetVolume, listVolume)
+import           Scaleway.Internal.Types   (GetVolume, Volume, ScalewayEnv, listVolume)
 
 listVolumes' :: (MonadReader ScalewayEnv m, MonadIO m)
              => Page -> PerPage -> m (Response ByteString)
 listVolumes' pageNumber nPerPage = listResource' pageNumber nPerPage listVolume
 
 listVolumes :: (MonadReader ScalewayEnv m, MonadIO m)
-            => Page -> PerPage -> m (Either String [Get.Volume])
+            => Page -> PerPage -> m (Either String [Volume])
 listVolumes pageNumber nPerPage = listResource pageNumber nPerPage listVolume
 
 retrieveVolume' :: (MonadReader ScalewayEnv m, MonadIO m)
@@ -32,5 +29,5 @@ retrieveVolume' :: (MonadReader ScalewayEnv m, MonadIO m)
 retrieveVolume' = retrieveResource'
 
 retrieveVolume :: (MonadReader ScalewayEnv m, MonadIO m)
-               => GetVolume -> m (Either String Get.Volume)
+               => GetVolume -> m (Either String Volume)
 retrieveVolume = retrieveResource
