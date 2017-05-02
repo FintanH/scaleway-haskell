@@ -14,20 +14,20 @@ import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
                                                 listResource, listResource',
                                                 retrieveResource,
                                                 retrieveResource')
-import           Scaleway.Internal.Types   (GetToken, Token, ScalewayEnv, listToken)
+import           Scaleway.Internal.Types   (GetToken, Token, ScalewayRequest, listToken)
 
-listTokens' :: (MonadReader ScalewayEnv m, MonadIO m)
-            => Page -> PerPage -> m (Response ByteString)
-listTokens' pageNumber nPerPage = listResource' pageNumber nPerPage listToken
+listTokens' :: (MonadReader ScalewayRequest m, MonadIO m)
+            => m (Response ByteString)
+listTokens' = listResource' listToken
 
-listTokens :: (MonadReader ScalewayEnv m, MonadIO m)
-           => Page -> PerPage -> m (Either String [Token])
-listTokens pageNumber nPerPage = listResource pageNumber nPerPage listToken
+listTokens :: (MonadReader ScalewayRequest m, MonadIO m)
+           => m (Either String [Token])
+listTokens = listResource listToken
 
-retrieveToken' :: (MonadReader ScalewayEnv m, MonadIO m)
+retrieveToken' :: (MonadReader ScalewayRequest m, MonadIO m)
                => GetToken -> m (Response ByteString)
 retrieveToken' = retrieveResource'
 
-retrieveToken :: (MonadReader ScalewayEnv m, MonadIO m)
+retrieveToken :: (MonadReader ScalewayRequest m, MonadIO m)
               => GetToken -> m (Either String Token)
 retrieveToken = retrieveResource

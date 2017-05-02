@@ -19,7 +19,7 @@ import           Network.Wreq            (Options, Response, defaults,
 import Scaleway.Internal.Types.Get (HasResourceId(..), HasResourceName(..))
 import Control.Monad.Reader (MonadReader, ask)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Scaleway.Internal.Types (ScalewayEnv (..), Region)
+import Scaleway.Internal.Types (ScalewayRequest (..), ScalewayEnv (..), ScalewayPaginate (..), Region)
 
 newtype ScalewayUrl = ScalewayUrl { unUrl :: String } deriving (Show, Eq)
 type HeaderToken = BS.ByteString
@@ -42,25 +42,23 @@ perPageParam :: PerPage -> Options -> Options
 perPageParam n = param "per_page" .~ [n]
 
 listResource' :: (HasResourceName resource String,
-                  MonadReader ScalewayEnv m, MonadIO m)
-              => Page
-              -> PerPage
-              -> resource
+                  MonadReader ScalewayRequest m, MonadIO m)
+              => resource
               -> m (Response ByteString)
-listResource' pageNumber nPerPage resource = do
-  scalewayEnv <- ask
-  let url = unUrl (requestUrl $ region scalewayEnv) <> "/" <> (getResourceNamePlural resource)
-      opts = defaults & (pageParam pageNumber) & (perPageParam nPerPage) & (scalewayHeader $ authToken scalewayEnv)
+listResource' resource = do
+  scalewayRequest <- ask
+  let scalewayEnv = env scalewayRequest
+      paginateResult = paginate scalewayRequest
+      url = unUrl (requestUrl $ region scalewayEnv) <> "/" <> (getResourceNamePlural resource)
+      opts = defaults & (pageParam $ pageNumber paginateResult) & (perPageParam $ perPage paginateResult) & (scalewayHeader $ authToken scalewayEnv)
   liftIO (getWith opts url)
 
 listResource :: (FromJSON a, HasResourceName resource String,
-                 MonadReader ScalewayEnv m, MonadIO m)
-             => Page
-             -> PerPage
-             -> resource
+                 MonadReader ScalewayRequest m, MonadIO m)
+             => resource
              -> m (Either String [a])
-listResource pageNumber nPerPage resource = do
-  r <- listResource' pageNumber nPerPage resource
+listResource resource = do
+  r <- listResource' resource
   return $ parseEither parseResources =<< (eitherDecode $ r ^. responseBody :: Either String Value)
   where
     parseResources = withObject resourceName $ \o -> do
@@ -70,17 +68,17 @@ listResource pageNumber nPerPage resource = do
     resourceName = getResourceNamePlural resource
 
 retrieveResource' :: (HasResourceId resource Text, HasResourceName resource String,
-                      MonadReader ScalewayEnv m, MonadIO m)
+                      MonadReader ScalewayRequest m, MonadIO m)
                   => resource
                   -> m (Response ByteString)
 retrieveResource' resource = do
-  scalewayEnv <- ask
+  scalewayEnv <- env <$> ask
   let url = unUrl (requestUrl $ region scalewayEnv) <> "/" <> (getResourceNamePlural resource) <> "/" <> (unpack $ getResourceId resource)
       opts = defaults & (scalewayHeader $ authToken scalewayEnv)
   liftIO (getWith opts url)
 
 retrieveResource :: (FromJSON a, HasResourceId resource Text, HasResourceName resource String,
-                     MonadReader ScalewayEnv m, MonadIO m)
+                     MonadReader ScalewayRequest m, MonadIO m)
                  => resource
                  -> m (Either String a)
 retrieveResource resource = do
@@ -93,22 +91,22 @@ retrieveResource resource = do
 
     resourceName = getResourceNameSingular resource
 
-createResource' :: (ToJSON a, MonadReader ScalewayEnv m, MonadIO m)
+createResource' :: (ToJSON a, MonadReader ScalewayRequest m, MonadIO m)
                 => a
                 -> Resource
                 -> m (Response ByteString)
 createResource' resouceData resource = do
-  scalewayEnv <- ask
+  scalewayEnv <- env <$> ask
   let jsonData = toJSON resouceData
       url = unUrl (requestUrl $ region scalewayEnv) <> "/" <> resource
       opts = defaults & (scalewayHeader $ authToken scalewayEnv)
   liftIO (print $ "POSTing: " <> show jsonData)
   liftIO (postWith opts url jsonData)
 
-removeResource :: (HasResourceId resourceId Text, MonadReader ScalewayEnv m, MonadIO m)
+removeResource :: (HasResourceId resourceId Text, MonadReader ScalewayRequest m, MonadIO m)
                => resourceId -> Resource -> m ()
 removeResource resourceId resource = do
-  scalewayEnv <- ask
+  scalewayEnv <- env <$> ask
   let url = unUrl (requestUrl $ region scalewayEnv) <> "/" <> resource <> "/" <> rId
       opts = defaults & (scalewayHeader $ authToken scalewayEnv)
   r <- liftIO $ deleteWith opts url

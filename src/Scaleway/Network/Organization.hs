@@ -12,12 +12,12 @@ import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
                                                 listResource, listResource',
                                                 retrieveResource,
                                                 retrieveResource')
-import           Scaleway.Internal.Types   (Organization, ScalewayEnv, listOrganization)
+import           Scaleway.Internal.Types   (Organization, ScalewayRequest, listOrganization)
 
-listOrganizations' :: (MonadReader ScalewayEnv m, MonadIO m)
-                   => Page -> PerPage -> m (Response ByteString)
-listOrganizations' pageNumber nPerPage = listResource' pageNumber nPerPage listOrganization
+listOrganizations' :: (MonadReader ScalewayRequest m, MonadIO m)
+                   => m (Response ByteString)
+listOrganizations' = listResource' listOrganization
 
-listOrganizations :: (MonadReader ScalewayEnv m, MonadIO m)
-                  => Page -> PerPage -> m (Either String [Organization])
-listOrganizations pageNumber nPerPage = listResource pageNumber nPerPage listOrganization
+listOrganizations :: (MonadReader ScalewayRequest m, MonadIO m)
+                  => m (Either String [Organization])
+listOrganizations = listResource listOrganization

@@ -14,20 +14,20 @@ import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
                                                 listResource, listResource',
                                                 retrieveResource,
                                                 retrieveResource')
-import           Scaleway.Internal.Types   (GetSnapshot, Snapshot, ScalewayEnv, listSnapshot)
+import           Scaleway.Internal.Types   (GetSnapshot, Snapshot, ScalewayRequest, listSnapshot)
 
-listSnapshots' :: (MonadReader ScalewayEnv m, MonadIO m)
-               => Page -> PerPage -> m (Response ByteString)
-listSnapshots' pageNumber nPerPage = listResource' pageNumber nPerPage listSnapshot
+listSnapshots' :: (MonadReader ScalewayRequest m, MonadIO m)
+               => m (Response ByteString)
+listSnapshots' = listResource' listSnapshot
 
-listSnapshots :: (MonadReader ScalewayEnv m, MonadIO m)
-              => Page -> PerPage -> m (Either String [Snapshot])
-listSnapshots pageNumber nPerPage = listResource pageNumber nPerPage listSnapshot
+listSnapshots :: (MonadReader ScalewayRequest m, MonadIO m)
+              => m (Either String [Snapshot])
+listSnapshots = listResource listSnapshot
 
-retrieveSnapshot' :: (MonadReader ScalewayEnv m, MonadIO m)
+retrieveSnapshot' :: (MonadReader ScalewayRequest m, MonadIO m)
                   => GetSnapshot -> m (Response ByteString)
 retrieveSnapshot' = retrieveResource'
 
-retrieveSnapshot :: (MonadReader ScalewayEnv m, MonadIO m)
+retrieveSnapshot :: (MonadReader ScalewayRequest m, MonadIO m)
                  => GetSnapshot -> m (Either String Snapshot)
 retrieveSnapshot = retrieveResource

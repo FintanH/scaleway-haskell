@@ -27,6 +27,8 @@ module Scaleway.Internal.Types
     , CommercialType (..)
     , Region (..)
     , ScalewayEnv (..)
+    , ScalewayPaginate (..)
+    , ScalewayRequest (..)
     , module Scaleway.Internal.Types.Get
     , module Scaleway.Internal.Types.ResourceId
     ) where
@@ -54,11 +56,23 @@ import Scaleway.Internal.Types.Get
 import qualified Data.ByteString as BS
 
 type HeaderToken = BS.ByteString
+type Page = Text
+type PerPage = Text
 
 data ScalewayEnv = ScalewayEnv {
     authToken :: HeaderToken
   , region    :: Region
-}
+} deriving (Show, Eq)
+
+data ScalewayPaginate = ScalewayPaginate {
+    perPage :: PerPage
+  , pageNumber :: Page
+} deriving (Show, Eq)
+
+data ScalewayRequest = ScalewayRequest {
+    env :: ScalewayEnv
+  , paginate :: ScalewayPaginate
+} deriving (Show, Eq)
 
 data Region =
     Paris

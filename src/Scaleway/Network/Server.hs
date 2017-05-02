@@ -24,27 +24,27 @@ import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
                                                 retrieveResource',
                                                 removeResource,
                                                 scalewayHeader, unUrl)
-import Scaleway.Internal.Types (Server, mkServerData, CommercialType, ScalewayEnv, GetServer, listServer,ImageId,
-                                                OrganizationId, Region,
-                                                ServerId (..), Tag)
+import Scaleway.Internal.Types (Server, mkServerData, CommercialType, ScalewayRequest, GetServer, listServer, ImageId,
+                                OrganizationId, Region,
+                                ServerId (..), Tag)
 
-listServers' :: (MonadReader ScalewayEnv m, MonadIO m)
-             => Page -> PerPage -> m (Response ByteString)
-listServers' pageNumber nPerPage = listResource' pageNumber nPerPage listServer
+listServers' :: (MonadReader ScalewayRequest m, MonadIO m)
+             => m (Response ByteString)
+listServers' = listResource' listServer
 
-listServers :: (MonadReader ScalewayEnv m, MonadIO m)
-            => Page -> PerPage -> m (Either String [Server])
-listServers pageNumber nPerPage = listResource pageNumber nPerPage listServer
+listServers :: (MonadReader ScalewayRequest m, MonadIO m)
+            => m (Either String [Server])
+listServers = listResource listServer
 
-retrieveServer' :: (MonadReader ScalewayEnv m, MonadIO m)
+retrieveServer' :: (MonadReader ScalewayRequest m, MonadIO m)
                 => GetServer -> m (Response ByteString)
 retrieveServer' = retrieveResource'
 
-retrieveServer :: (MonadReader ScalewayEnv m, MonadIO m)
+retrieveServer :: (MonadReader ScalewayRequest m, MonadIO m)
                => GetServer -> m (Either String Server)
 retrieveServer = retrieveResource
 
-createServer :: (MonadReader ScalewayEnv m, MonadIO m)
+createServer :: (MonadReader ScalewayRequest m, MonadIO m)
              => Text            -- | Name of the server
              -> OrganizationId  -- | Text ID of the Organization
              -> ImageId         -- | Text ID of the Image
@@ -60,6 +60,6 @@ createServer name organization image commercialType tags enableIpv6 = do
       server <- o .: "server"
       parseJSON server
 
-removeServer :: (MonadReader ScalewayEnv m, MonadIO m)
+removeServer :: (MonadReader ScalewayRequest m, MonadIO m)
              => ServerId -> m ()
 removeServer serverId = removeResource serverId "servers"

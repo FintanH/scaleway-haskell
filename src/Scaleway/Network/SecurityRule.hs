@@ -14,20 +14,20 @@ import           Scaleway.Internal.Request     (HeaderToken, Page, PerPage,
                                                 listResource, listResource',
                                                 retrieveResource,
                                                 retrieveResource')
-import           Scaleway.Internal.Types   (GetSecurityRule, SecurityRule, ScalewayEnv, listSecurityRule)
+import           Scaleway.Internal.Types   (GetSecurityRule, SecurityRule, ScalewayRequest, listSecurityRule)
 
-listSecurityRules' :: (MonadReader ScalewayEnv m, MonadIO m)
-                   => Page -> PerPage -> m (Response ByteString)
-listSecurityRules' pageNumber nPerPage = listResource' pageNumber nPerPage listSecurityRule
+listSecurityRules' :: (MonadReader ScalewayRequest m, MonadIO m)
+                   => m (Response ByteString)
+listSecurityRules' = listResource' listSecurityRule
 
-listSecurityRules :: (MonadReader ScalewayEnv m, MonadIO m)
-                  => Page -> PerPage -> m (Either String [SecurityRule])
-listSecurityRules pageNumber nPerPage = listResource pageNumber nPerPage listSecurityRule
+listSecurityRules :: (MonadReader ScalewayRequest m, MonadIO m)
+                  => m (Either String [SecurityRule])
+listSecurityRules = listResource listSecurityRule
 
-retrieveSecurityRule' :: (MonadReader ScalewayEnv m, MonadIO m)
+retrieveSecurityRule' :: (MonadReader ScalewayRequest m, MonadIO m)
                       => GetSecurityRule -> m (Response ByteString)
 retrieveSecurityRule' = retrieveResource'
 
-retrieveSecurityRule :: (MonadReader ScalewayEnv m, MonadIO m)
+retrieveSecurityRule :: (MonadReader ScalewayRequest m, MonadIO m)
                     => GetSecurityRule -> m (Either String SecurityRule)
 retrieveSecurityRule = retrieveResource
