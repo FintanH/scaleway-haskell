@@ -27,6 +27,8 @@ module Scaleway.Internal.Types
     , CommercialType (..)
     , Region (..)
     , ScalewayEnv (..)
+    , HeaderToken
+    , PerPage
     , ScalewayPaginate (..)
     , ScalewayRequest (..)
     , module Scaleway.Internal.Types.Get
