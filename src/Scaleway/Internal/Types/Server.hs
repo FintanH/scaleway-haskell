@@ -65,7 +65,7 @@ data PublicIp = PublicIp {
 instance FromJSON PublicIp where
   parseJSON = withObject "public ip" $ \o -> do
     dynamic <- o .: "dynamic"
-    publicIpId <- o .: "public_ip_id"
+    publicIpId <- o .: "id"
     address <- o .: "address"
     pure PublicIp {..}
 
