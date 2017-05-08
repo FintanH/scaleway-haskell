@@ -13,6 +13,7 @@ module Scaleway.Internal.Types
     , SecurityRuleData (..)
     , Server (..)
     , ServerData (..)
+    , ServerState (..)
     , mkServerData
     , Snapshot (..)
     , SnapshotData (..)
