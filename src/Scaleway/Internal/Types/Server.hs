@@ -63,7 +63,11 @@ data PublicIp = PublicIp {
 } deriving (Show, Eq, Generic)
 
 instance FromJSON PublicIp where
-  parseJSON = genericParseJSON defaultOptions . jsonCamelCase
+  parseJSON = withObject "public ip" $ \o -> do
+    dynamic <- o .: "dynamic"
+    publicIpId <- o .: "public_ip_id"
+    address <- o .: "address"
+    pure PublicIp {..}
 
 instance ToJSON PublicIp
 
