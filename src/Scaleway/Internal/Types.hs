@@ -14,6 +14,7 @@ module Scaleway.Internal.Types
     , Server (..)
     , ServerData (..)
     , ServerState (..)
+    , PublicIp (..)
     , mkServerData
     , Snapshot (..)
     , SnapshotData (..)
