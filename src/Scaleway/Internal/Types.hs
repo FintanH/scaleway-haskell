@@ -2,6 +2,8 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Scaleway.Internal.Types
     ( Image (..)
@@ -56,8 +58,14 @@ import           Scaleway.Internal.Types.Snapshot
 import           Scaleway.Internal.Utility      (jsonCamelCase)
 import Scaleway.Internal.Types.ResourceId
 import Scaleway.Internal.Types.Get
-
+import Control.Lens (makeLenses, makeFields, Lens')
 import qualified Data.ByteString as BS
+
+makeFields ''ServerBase
+makeFields ''ImageBase
+makeFields ''SecurityGroupBase
+makeFields ''VolumeBase
+makeFields ''SnapshotBase
 
 type HeaderToken = BS.ByteString
 type Page = Text
@@ -101,13 +109,13 @@ instance FromJSON RoleType where
       _         -> fail (unpack $ "Unknown role type: " <> t)
 
 data Role = Role {
-    organization :: Maybe OrganizationId
+    roleOrganization :: Maybe OrganizationId
   , role :: Maybe RoleType
 } deriving (Show, Eq)
 
 instance FromJSON Role where
   parseJSON = withObject "role" $ \o -> do
-    organization <- (fmap ResourceId) <$> o .:? "organization"
+    roleOrganization <- (fmap ResourceId) <$> o .:? "organization"
     role <- (o .:? "role") >>= traverse parseJSON
     pure Role {..}
 
@@ -146,14 +154,14 @@ instance FromJSON ImageData where
 
 data Organization = Organization {
     organizationId :: OrganizationId
-  , name :: Text
+  , organizationName :: Text
   , users :: [User]
 }
 
 instance FromJSON Organization where
   parseJSON = withObject "organization" $ \o -> do
     organizationId <- parseOrganizationId (Object o)
-    name <- o .: "name"
+    organizationName <- o .: "name"
     users <- o .: "users" >>= traverse parseJSON
     pure Organization {..}
 
@@ -177,29 +185,96 @@ instance FromJSON SecurityGroup where
     pure SecurityGroup {..}
 
 
+data User = User {
+    userId :: UserId
+  , email :: Text
+  , firstname :: Text
+  , lastname :: Text
+  , fullname :: Text
+  , organizations :: Maybe [OrganizationId]
+  , roles :: Maybe [Role]
+  , sshPublicKeys :: Maybe [Text]
+} deriving (Show, Eq)
+
+instance FromJSON User where
+  parseJSON = withObject "user" $ \o -> do
+    userId <- parseUserId (Object o)
+    email <- o .: "email"
+    firstname <- o .: "firstname"
+    lastname <- o .: "lastname"
+    fullname <- o .: "fullname"
+    organizations <- fmap (map ResourceId) <$> o .:? "organizations"
+    roles <- o .:? "roles" >>= traverse parseJSON
+    sshPublicKeys <- o .:? "ssh_public_keys"
+    pure User {..}
+
+
+type VolumeData = VolumeBase OrganizationId
+data Volume = Volume {
+    volumeBase       :: VolumeBase OrganizationId
+  , volumeId         :: VolumeId
+  , modificationDate :: Maybe UTCTime
+  , creationDate     :: Maybe UTCTime
+  , exportURI        :: Maybe Text
+  , volumeServer     :: Maybe ServerRef
+} deriving (Show, Eq, Generic)
+
+instance FromJSON Volume where
+  parseJSON = withObject "volume GET response" $ \o -> do
+    let object = Object o
+    volumeBase <- parseVolumeBase parseOrganizationId object
+    volumeId <- parseVolumeId object
+    modificationDate <- o .:? "modification_date"
+    creationDate <- o .:? "creation_date"
+    exportURI <- o .: "export_uri"
+    volumeServer <- o .: "server" >>= parseJSON
+    pure Volume {..}
+
+
 type ServerData = ServerBase OrganizationId ImageId [Tag]
 data Server = Server {
-    server     :: ServerBase OrganizationId (Maybe ImageRef) [Tag]
-  , serverId   :: ServerId
-  , bootscript :: Maybe BootScript
-  , privateIp  :: Maybe Text
-  , publicIp   :: Maybe PublicIp
-  , state      :: ServerState
-  , volumes    :: HM.HashMap Int Volume
+    serverBase       :: ServerBase OrganizationId (Maybe ImageRef) [Tag]
+  , serverId         :: ServerId
+  , serverBootscript :: Maybe BootScript
+  , serverPrivateIp  :: Maybe Text
+  , serverPublicIp   :: Maybe PublicIp
+  , serverState      :: ServerState
+  , serverVolumes    :: HM.HashMap Int Volume
 } deriving (Show, Eq, Generic)
+
+makeLenses ''Server
+makeFields ''Server
+
+serverName :: Lens' Server ServerName
+serverName = base . name
+
+serverOrganization :: Lens' Server OrganizationId
+serverOrganization = base . organization
+
+serverImage :: Lens' Server (Maybe ImageRef)
+serverImage = base . image
+
+serverType :: Lens' Server CommercialType
+serverType = base . commercialType
+
+serverTags :: Lens' Server [Tag]
+serverTags = base . tags
+
+serverEnableIpv6 :: Lens' Server (Maybe Bool)
+serverEnableIpv6 = base . enableIpv6
 
 mkServerData = ServerBase
 
 instance FromJSON Server where
   parseJSON = withObject "server GET request" $ \o -> do
     let object = (Object o)
-    server <- parseServerBase parseOrganizationId imageParser tagsParser object
+    serverBase <- parseServerBase parseOrganizationId imageParser tagsParser object
     serverId <- parseServerId object
-    bootscript <- o .: "bootscript" >>= parseJSON
-    privateIp <- o .:? "private_ip"
-    publicIp <- o .: "public_ip" >>= parseJSON
-    state <- o .: "state" >>= parseJSON
-    volumes <- o .: "volumes" >>= parseJSON
+    serverBootscript <- o .: "bootscript" >>= parseJSON
+    serverPrivateIp <- o .:? "private_ip"
+    serverPublicIp <- o .: "public_ip" >>= parseJSON
+    serverState <- o .: "state" >>= parseJSON
+    serverVolumes <- o .: "volumes" >>= parseJSON
     pure Server {..}
     where
       tagsParser = withObject "server tags" (.: "tags")
@@ -207,19 +282,14 @@ instance FromJSON Server where
         image <- o .: "image"
         parseJSON image
 
-        -- name           :: ServerName
-        -- , organization   :: org
-        -- , image          :: image
-        -- , commercialType :: CommercialType
-        -- , tags           :: tags
-        -- , enableIpv6     :: Maybe Bool
 instance ToJSON ServerData where
   toJSON ServerBase {..} = object [
-      "organization" .= toJSON (unResourceId organization),
-      "image" .= image,
-      "commercial_type" .= commercialType,
-      "tags" .= tags,
-      "enable_ipv6" .= enableIpv6 ]
+      "organization" .= toJSON (unResourceId serverBaseOrganization),
+      "image" .= serverBaseImage,
+      "commercial_type" .= serverBaseCommercialType,
+      "tags" .= serverBaseTags,
+      "enable_ipv6" .= serverBaseEnableIpv6 ]
+
 
 type SnapshotData = SnapshotBase OrganizationId VolumeId
 data Snapshot = Snapshot {
@@ -227,7 +297,7 @@ data Snapshot = Snapshot {
   , snapshotId :: SnapshotId
   , creationDate :: UTCTime
   , size :: Int
-  , state :: SnapshotState
+  , snapshotState :: SnapshotState
   , volumeType :: Text
 } deriving (Show, Eq)
 
@@ -237,7 +307,7 @@ instance FromJSON Snapshot where
     snapshotId <- parseSnapshotId (Object o)
     creationDate <- o .: "creation_date"
     size <- o .: "size"
-    state <- o .: "state" >>= parseJSON
+    snapshotState <- o .: "state" >>= parseJSON
     volumeType <- o .: "volume_type"
     pure Snapshot {..}
     where
@@ -273,49 +343,3 @@ instance FromJSON Token where
     permissions <- o .: "permissions"
     roles <- parseJSON (Object o)
     pure Token {..}
-
-
-data User = User {
-    userId :: UserId
-  , email :: Text
-  , firstname :: Text
-  , lastname :: Text
-  , fullname :: Text
-  , organizations :: Maybe [OrganizationId]
-  , roles :: Maybe [Role]
-  , sshPublicKeys :: Maybe [Text]
-} deriving (Show, Eq)
-
-instance FromJSON User where
-  parseJSON = withObject "user" $ \o -> do
-    userId <- parseUserId (Object o)
-    email <- o .: "email"
-    firstname <- o .: "firstname"
-    lastname <- o .: "lastname"
-    fullname <- o .: "fullname"
-    organizations <- fmap (map ResourceId) <$> o .:? "organizations"
-    roles <- o .:? "roles" >>= traverse parseJSON
-    sshPublicKeys <- o .:? "ssh_public_keys"
-    pure User {..}
-
-
-type VolumeData = VolumeBase OrganizationId
-data Volume = Volume {
-    volume           :: VolumeBase OrganizationId
-  , volumeId         :: VolumeId
-  , modificationDate :: Maybe UTCTime
-  , creationDate     :: Maybe UTCTime
-  , exportURI        :: Maybe Text
-  , server           :: Maybe ServerRef
-} deriving (Show, Eq, Generic)
-
-instance FromJSON Volume where
-  parseJSON = withObject "volume GET response" $ \o -> do
-    let object = Object o
-    volume <- parseVolumeBase parseOrganizationId object
-    volumeId <- parseVolumeId object
-    modificationDate <- o .:? "modification_date"
-    creationDate <- o .:? "creation_date"
-    exportURI <- o .: "export_uri"
-    server <- o .: "server" >>= parseJSON
-    pure Volume {..}

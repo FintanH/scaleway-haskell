@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Scaleway.Internal.Types.Snapshot where
 
@@ -5,14 +8,17 @@ import Data.Text (Text, unpack)
 import Data.Aeson (FromJSON, parseJSON, Value(Object), withObject, (.:))
 import Data.Monoid ((<>))
 import Data.Aeson.Types (Parser, withText)
+import Control.Lens (makeLenses)
 
 type SnapshotName = Text
 
 data SnapshotBase org volume = SnapshotBase {
-    name         :: SnapshotName
-  , organization :: org
-  , volume       :: volume
+    snapshotBaseName         :: SnapshotName
+  , snapshotBaseOrganization :: org
+  , snapshotBaseVolume       :: volume
 } deriving (Show, Eq)
+
+makeLenses ''SnapshotBase
 
 data SnapshotState =
     Snapshotting
@@ -30,7 +36,7 @@ parseSnapshotBase :: (Value -> Parser org)
                   -> (Value -> Parser volume)
                   -> (Value -> Parser (SnapshotBase org volume))
 parseSnapshotBase orgParser volumeParser = withObject "snapshot base" $ \o -> do
-  name <- o .: "name"
-  organization <- orgParser (Object o)
-  volume <- volumeParser (Object o)
+  snapshotBaseName <- o .: "name"
+  snapshotBaseOrganization <- orgParser (Object o)
+  snapshotBaseVolume <- volumeParser (Object o)
   return SnapshotBase {..}

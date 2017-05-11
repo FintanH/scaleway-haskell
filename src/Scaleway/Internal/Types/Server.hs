@@ -1,4 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Scaleway.Internal.Types.Server where
 
@@ -11,27 +14,42 @@ import           GHC.Generics
 import           Scaleway.Internal.Utility (jsonCamelCase)
 import Data.Monoid ((<>))
 import Scaleway.Internal.Types.ResourceId (ServerId, parseServerId)
+import Control.Lens (makeLenses)
 
 type ServerName = Text
 
+data CommercialType = VC1S
+                    | VC1M
+                    | VC1L
+                    | C1
+                    | C2S
+                    | C2M
+                    | C2L
+                    deriving (Show, Eq, Generic)
+
+instance FromJSON CommercialType
+instance ToJSON CommercialType
+
 data ServerBase org image tags = ServerBase {
-      name           :: ServerName
-    , organization   :: org
-    , image          :: image
-    , commercialType :: CommercialType
-    , tags           :: tags
-    , enableIpv6     :: Maybe Bool
+      serverBaseName :: ServerName
+    , serverBaseOrganization   :: org
+    , serverBaseImage          :: image
+    , serverBaseCommercialType :: CommercialType
+    , serverBaseTags           :: tags
+    , serverBaseEnableIpv6     :: Maybe Bool
 } deriving (Show, Eq, Generic)
 
+makeLenses ''ServerBase
+
 data ServerRef = ServerRef {
-    serverId :: ServerId
-  , name     :: ServerName
+    serverRefServerId :: ServerId
+  , serverRefName     :: ServerName
 } deriving (Show, Eq)
 
 instance FromJSON ServerRef where
   parseJSON = withObject "server ref" $ \o -> do
-    serverId <- parseServerId (Object o)
-    name <- o .: "name"
+    serverRefServerId <- parseServerId (Object o)
+    serverRefName <- o .: "name"
     return ServerRef {..}
 
 data BootScript = BootScript {
@@ -90,28 +108,16 @@ instance FromJSON ServerState where
       _        -> fail (unpack $ "Server state " <> t <> " was not recognised")
 instance ToJSON ServerState
 
-data CommercialType = VC1S
-                    | VC1M
-                    | VC1L
-                    | C1
-                    | C2S
-                    | C2M
-                    | C2L
-                    deriving (Show, Eq, Generic)
-
-instance FromJSON CommercialType
-instance ToJSON CommercialType
-
 parseServerBase :: (Value -> Parser org)
                 -> (Value -> Parser image)
                 -> (Value -> Parser tags)
                 -> (Value -> Parser (ServerBase org image tags))
 parseServerBase orgParser imageParser tagsParser = withObject "server base" $ \o -> do
   let object = (Object o)
-  name <- o .: "name"
-  organization <- orgParser object
-  image <- imageParser object
-  commercialType <- o .: "commercial_type"
-  tags <- tagsParser object
-  enableIpv6 <- o .:? "enable_ipv6"
+  serverBaseName <- o .: "name"
+  serverBaseOrganization <- orgParser object
+  serverBaseImage <- imageParser object
+  serverBaseCommercialType <- o .: "commercial_type"
+  serverBaseTags <- tagsParser object
+  serverBaseEnableIpv6 <- o .:? "enable_ipv6"
   return ServerBase {..}
