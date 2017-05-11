@@ -18,6 +18,12 @@ module Scaleway.Internal.Types
     , ServerState (..)
     , PublicIp (..)
     , mkServerData
+    , serverName
+    , serverOrganization
+    , serverImage
+    , serverType
+    , serverTags
+    , serverEnableIpv6
     , Snapshot (..)
     , SnapshotData (..)
     , Token (..)
