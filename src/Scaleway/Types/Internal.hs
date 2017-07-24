@@ -70,6 +70,7 @@ data CommercialType = VC1S
                     | C2S
                     | C2M
                     | C2L
+                    | ARM64
                     deriving (Show, Eq, Generic)
 
 data Role = Manager deriving (Show, Eq, Generic)
@@ -113,7 +114,7 @@ data Region = Paris
             deriving (Eq)
 
 instance Show Region where
-  show Paris = "par1"
+  show Paris     = "par1"
   show Amsterdam = "ams1"
 
 instance FromJSON ServerId
@@ -170,14 +171,15 @@ instance FromJSON CommercialType where
       Right s  -> pure s
       Left err -> fail err
     where
-      toCommercialType "VC1S"      = Right VC1S
-      toCommercialType "VC1M"      = Right VC1M
-      toCommercialType "VC1L"      = Right VC1L
-      toCommercialType "C1"        = Right C1
-      toCommercialType "C2S"       = Right C2S
-      toCommercialType "C2M"       = Right C2M
-      toCommercialType "C2L"       = Right C2L
-      toCommercialType unknownType = Left $ T.unpack ("Unknown state: " <> unknownType)
+      toCommercialType "VC1S"        = Right VC1S
+      toCommercialType "VC1M"        = Right VC1M
+      toCommercialType "VC1L"        = Right VC1L
+      toCommercialType "C1"          = Right C1
+      toCommercialType "C2S"         = Right C2S
+      toCommercialType "C2M"         = Right C2M
+      toCommercialType "C2L"         = Right C2L
+      toCommercialType "ARM64-128GB" = Right ARM64
+      toCommercialType unknownType   = Left $ T.unpack ("Unknown commercial type: " <> unknownType)
 
 instance ToJSON CommercialType
 
