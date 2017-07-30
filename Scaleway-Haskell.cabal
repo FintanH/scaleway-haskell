@@ -26,6 +26,8 @@ library
                      , Scaleway.Network.SecurityRule
                      , Scaleway.Network.Snapshot
                      , Scaleway.Network.Token
+                     , Scaleway.Api
+                     , Scaleway.Types
   other-modules:      Scaleway.Internal.Request
                     , Scaleway.Internal.Types
                     , Scaleway.Internal.Types.Server
@@ -46,6 +48,8 @@ library
                      , lens
                      , wreq
                      , mtl
+                     , servant
+                     , servant-client
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings, FlexibleContexts, DeriveGeneric, RecordWildCards
 
