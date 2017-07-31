@@ -1,29 +1,36 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
 module Scaleway.Types where
 
-import           Data.Aeson    (FromJSON (..), ToJSON, genericParseJSON)
-import           Data.Aeson.TH (defaultOptions, fieldLabelModifier)
-import           Data.Char     (toLower)
-import           Data.Text     (Text)
-import           Data.Time     (UTCTime)
+import           Data.Aeson        (FromJSON (..), ToJSON, Value (Array),
+                                    genericParseJSON, withObject, withText,
+                                    (.:))
+import           Data.Aeson.Casing (snakeCase)
+import           Data.Aeson.TH     (defaultOptions, fieldLabelModifier)
+import           Data.Char         (toLower)
+import           Data.Text         (Text, unpack)
+import           Data.Time         (UTCTime)
 import           GHC.Generics
 
 
 data Server = Server {
     serverId             :: Text
   , serverName           :: Text
-  , serverOrganization   :: Organization
+  , serverOrganization   :: Text
   , serverImage          :: Image
   , serverCommercialType :: CommercialType
   , serverTags           :: [Text]
   , serverEnableIpv6     :: Maybe Bool
 } deriving (Show, Eq, Generic)
 
-newtype Servers = Servers { servers :: [Server] } deriving (Show, Eq, Generic, FromJSON, ToJSON)
+newtype Servers = Servers { servers :: [Server] } deriving (Show, Eq, Generic)
+
+instance FromJSON Servers
+instance ToJSON Servers
 
 instance FromJSON Server where
-  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = map toLower . drop 6 }
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop 6 }
 
 instance ToJSON Server
 
@@ -37,10 +44,21 @@ data CommercialType = VC1S
                     | C2S
                     | C2M
                     | C2L
-                    | ARM64
+                    | ARM64_128GB
                     deriving (Show, Eq, Generic)
 
-instance FromJSON CommercialType
+instance FromJSON CommercialType where
+  parseJSON = withText "commercial_type" $ \t ->
+    case t of
+      "VC1S"        -> pure VC1S
+      "VC1M"        -> pure VC1M
+      "VC1L"        -> pure VC1L
+      "C1"          -> pure C1
+      "C2S"         -> pure C2S
+      "C2M"         -> pure C2M
+      "C2L"         -> pure C2L
+      "ARM64-128GB" -> pure ARM64_128GB
+      _             -> fail $ "Unknown commercial_type: " ++ (unpack t)
 instance ToJSON CommercialType
 
 
@@ -54,7 +72,7 @@ data Organization = Organization {
 } deriving (Show, Eq, Generic)
 
 instance FromJSON Organization where
-  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = map toLower . drop 12 }
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop 12 }
 
 instance ToJSON Organization
 
@@ -65,7 +83,7 @@ data Image = Image {
   , imageName             :: Text
   , imageOrganization     :: Text
   , imageRootVolume       :: VolumeRef
-  , imageArchitecture     :: Text
+  , imageArch             :: Text
   , imageCreationDate     :: UTCTime
   , imageExtraVolumes     :: Text
   , imageFromImage        :: Maybe Text
@@ -76,7 +94,7 @@ data Image = Image {
 } deriving (Show, Eq, Generic)
 
 instance FromJSON Image where
-  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = map toLower . drop 5 }
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop 5 }
 
 instance ToJSON Image
 
@@ -123,7 +141,9 @@ data VolumeRef = VolumeRef {
   , volumeRefId   :: Text
 } deriving (Show, Eq, Generic)
 
-instance FromJSON VolumeRef
+instance FromJSON VolumeRef where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop 9 }
+
 instance ToJSON VolumeRef
 
 

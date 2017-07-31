@@ -8,9 +8,9 @@ module Scaleway.Api where
 import           Data.Proxy     (Proxy (..))
 import           Data.String    (IsString)
 import           Data.Text      (Text, pack)
-import           Scaleway.Types (Servers)
-import           Servant.API    ((:>), Capture, Get, Header, JSON, QueryParam,
-                                 ToHttpApiData (toUrlPiece))
+import           Scaleway.Types (Server, Servers)
+import           Servant.API    ((:<|>) (..), (:>), Capture, Get, Header, JSON,
+                                 QueryParam, ToHttpApiData (toUrlPiece))
 import           Servant.Client (ClientM, client)
 
 newtype XAuthToken = XAuthToken Text deriving (Eq, Show, IsString)
@@ -27,23 +27,13 @@ instance ToHttpApiData Page where
   toUrlPiece (Page p) = pack $ show p
 
 type ScalewayApi = "servers" :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] Servers
-
--- | URI scheme to use
-data Scheme =
-    Http  -- ^ http://
-  | Https -- ^ https://
-  deriving (Show)
-
--- | Simple data type to represent the target of HTTP requests
---   for servant's automatically-generated clients.
-data BaseUrl = BaseUrl
-  { baseUrlScheme :: Scheme -- ^ URI scheme to use
-  , baseUrlHost   :: String   -- ^ host (eg "haskell.org")
-  }
+              :<|> "servers" :> Capture "serverId" Text :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] Server
 
 api :: Proxy ScalewayApi
 api = Proxy
 
 getServersM :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Servers
 
-getServersM = client api
+getServerM :: Text -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Server
+
+getServersM :<|> getServerM = client api
