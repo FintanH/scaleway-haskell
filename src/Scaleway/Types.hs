@@ -1,9 +1,12 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Scaleway.Types where
 
-import           Data.Aeson   (FromJSON, ToJSON)
-import           Data.Text    (Text)
-import           Data.Time    (UTCTime)
+import           Data.Aeson    (FromJSON (..), ToJSON, genericParseJSON)
+import           Data.Aeson.TH (defaultOptions, fieldLabelModifier)
+import           Data.Char     (toLower)
+import           Data.Text     (Text)
+import           Data.Time     (UTCTime)
 import           GHC.Generics
 
 
@@ -17,8 +20,12 @@ data Server = Server {
   , serverEnableIpv6     :: Maybe Bool
 } deriving (Show, Eq, Generic)
 
+newtype Servers = Servers { servers :: [Server] } deriving (Show, Eq, Generic, FromJSON, ToJSON)
+
+instance FromJSON Server where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = map toLower . drop 6 }
+
 instance ToJSON Server
-instance FromJSON Server
 
 -------------------------------------------------------------------------------
 
@@ -46,7 +53,9 @@ data Organization = Organization {
   , organizationUsers :: [User]
 } deriving (Show, Eq, Generic)
 
-instance FromJSON Organization
+instance FromJSON Organization where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = map toLower . drop 12 }
+
 instance ToJSON Organization
 
 -------------------------------------------------------------------------------
@@ -66,7 +75,9 @@ data Image = Image {
   , imagePublic           :: Bool
 } deriving (Show, Eq, Generic)
 
-instance FromJSON Image
+instance FromJSON Image where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = map toLower . drop 5 }
+
 instance ToJSON Image
 
 -------------------------------------------------------------------------------
@@ -114,3 +125,15 @@ data VolumeRef = VolumeRef {
 
 instance FromJSON VolumeRef
 instance ToJSON VolumeRef
+
+
+---
+
+data Region =
+    Paris
+  | Amsterdam
+  deriving (Eq)
+
+instance Show Region where
+  show Paris     = "par1"
+  show Amsterdam = "ams1"

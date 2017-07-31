@@ -1,21 +1,32 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE TypeOperators              #-}
 
 module Scaleway.Api where
 
 import           Data.Proxy     (Proxy (..))
-import           Data.Text      (Text)
-import           Scaleway.Types (Server)
-import           Servant.API    ((:>), Capture, Get, Header, JSON,
+import           Data.String    (IsString)
+import           Data.Text      (Text, pack)
+import           Scaleway.Types (Servers)
+import           Servant.API    ((:>), Capture, Get, Header, JSON, QueryParam,
                                  ToHttpApiData (toUrlPiece))
 import           Servant.Client (ClientM, client)
 
-newtype XAuthToken = XAuthToken Text deriving (Eq, Show)
+newtype XAuthToken = XAuthToken Text deriving (Eq, Show, IsString)
+newtype PerPage = PerPage Int deriving (Eq, Show, Num)
+newtype Page = Page Int deriving (Eq, Show, Num)
 
 instance ToHttpApiData XAuthToken where
   toUrlPiece (XAuthToken t) = t
 
-type ScalewayApi = "servers" :> Header "X-Auth-Token" XAuthToken :> Capture "per_page" Int :> Capture "page" Int :> Get '[JSON] [Server]
+instance ToHttpApiData PerPage where
+  toUrlPiece (PerPage p) = pack $ show p
+
+instance ToHttpApiData Page where
+  toUrlPiece (Page p) = pack $ show p
+
+type ScalewayApi = "servers" :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] Servers
 
 -- | URI scheme to use
 data Scheme =
@@ -33,6 +44,6 @@ data BaseUrl = BaseUrl
 api :: Proxy ScalewayApi
 api = Proxy
 
-getServers :: Maybe XAuthToken -> Int -> Int -> ClientM [Server]
+getServersM :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Servers
 
-getServers = client api
+getServersM = client api
