@@ -8,7 +8,7 @@ module Scaleway.Api where
 import           Data.Proxy     (Proxy (..))
 import           Data.String    (IsString)
 import           Data.Text      (Text, pack)
-import           Scaleway.Types (Server, Servers)
+import           Scaleway.Types (Server, Servers, Volumes)
 import           Servant.API    ((:<|>) (..), (:>), Capture, Get, Header, JSON,
                                  QueryParam, ToHttpApiData (toUrlPiece))
 import           Servant.Client (ClientM, client)
@@ -28,6 +28,7 @@ instance ToHttpApiData Page where
 
 type ScalewayApi = "servers" :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] Servers
               :<|> "servers" :> Capture "serverId" Text :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] Server
+              :<|> "volumes" :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] Volumes
 
 api :: Proxy ScalewayApi
 api = Proxy
@@ -36,4 +37,6 @@ getServersM :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Server
 
 getServerM :: Text -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Server
 
-getServersM :<|> getServerM = client api
+getVolumesM :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Volumes
+
+getServersM :<|> getServerM :<|> getVolumesM = client api

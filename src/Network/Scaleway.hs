@@ -4,8 +4,8 @@ module Network.Scaleway where
 import           Data.Text               (Text)
 import           Network.HTTP.Client.TLS (newTlsManager)
 import           Scaleway.Api            (Page, PerPage, XAuthToken, getServerM,
-                                          getServersM)
-import           Scaleway.Types          (Region, Server, Servers)
+                                          getServersM, getVolumesM)
+import           Scaleway.Types          (Region, Server, Servers, Volumes)
 import           Servant.Client          (BaseUrl (..), ClientEnv (..),
                                           Scheme (..), ServantError, runClientM)
 
@@ -24,3 +24,9 @@ getServer :: Region -> Text -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -
 getServer region serverId auth perPage page = do
   clientEnv <- clientEnv region
   runClientM (getServerM serverId auth perPage page) clientEnv
+
+
+getVolumes :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError Volumes)
+getVolumes region auth perPage page = do
+  clientEnv <- clientEnv region
+  runClientM (getVolumesM auth perPage page) clientEnv

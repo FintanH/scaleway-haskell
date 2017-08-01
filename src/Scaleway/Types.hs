@@ -14,6 +14,9 @@ import           Data.Time         (UTCTime)
 import           GHC.Generics
 
 
+serverPrefix :: String
+serverPrefix = "server"
+
 data Server = Server {
     serverId             :: Text
   , serverName           :: Text
@@ -24,15 +27,25 @@ data Server = Server {
   , serverEnableIpv6     :: Maybe Bool
 } deriving (Show, Eq, Generic)
 
+instance FromJSON Server where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length serverPrefix) }
+
+
 newtype Servers = Servers { servers :: [Server] } deriving (Show, Eq, Generic)
 
 instance FromJSON Servers
-instance ToJSON Servers
 
-instance FromJSON Server where
-  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop 6 }
 
-instance ToJSON Server
+serverRefPrefix :: String
+serverRefPrefix = "serverRef"
+
+data ServerRef = ServerRef {
+    serverRefId   :: Text
+  , serverRefName :: Text
+} deriving (Show, Eq, Generic)
+
+instance FromJSON ServerRef where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length serverRefPrefix) }
 
 -------------------------------------------------------------------------------
 
@@ -64,6 +77,8 @@ instance ToJSON CommercialType
 
 -------------------------------------------------------------------------------
 
+organizationPrefix :: String
+organizationPrefix = "organization"
 
 data Organization = Organization {
     organizationId    :: Text
@@ -72,11 +87,14 @@ data Organization = Organization {
 } deriving (Show, Eq, Generic)
 
 instance FromJSON Organization where
-  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop 12 }
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length organizationPrefix) }
 
-instance ToJSON Organization
 
 -------------------------------------------------------------------------------
+
+
+imagePrefix :: String
+imagePrefix = "image"
 
 data Image = Image {
     imageId               :: Text
@@ -94,12 +112,14 @@ data Image = Image {
 } deriving (Show, Eq, Generic)
 
 instance FromJSON Image where
-  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop 5 }
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length imagePrefix) }
 
-instance ToJSON Image
 
 -------------------------------------------------------------------------------
 
+
+userPrefix :: String
+userPrefix = "user"
 
 data User = User {
     userId            :: Text
@@ -112,29 +132,65 @@ data User = User {
   , userSshPublicKeys :: Maybe [Text]
 } deriving (Show, Eq, Generic)
 
-instance FromJSON User
-instance ToJSON User
+instance FromJSON User where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length userPrefix) }
 
 
 -------------------------------------------------------------------------------
+
+
 data RoleType = Manager
   deriving (Show, Eq, Generic)
 
 instance FromJSON RoleType
 instance ToJSON RoleType
 
+rolePrefix :: String
+rolePrefix = "role"
 
 data Role = Role {
-    organization :: Maybe Text
-  , role         :: Maybe RoleType
+    roleOrganization :: Maybe Text
+  , role             :: Maybe RoleType
 } deriving (Show, Eq, Generic)
 
-instance FromJSON Role
-instance ToJSON Role
+instance FromJSON Role where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = modify }
+    where
+      modify "role" = "role"
+      modify s      = snakeCase . drop (length rolePrefix) $ s
 
 
 -------------------------------------------------------------------------------
 
+volumePrefix :: String
+volumePrefix = "volume"
+
+data Volume = Volume {
+      volumeId               :: Text
+    , volumeName             :: Text
+    , volumeOrganization     :: Text
+    , volumeSize             :: Int
+    , volumeType             :: Text
+    , volumeModificationDate :: Maybe UTCTime
+    , volumeCreationDate     :: Maybe UTCTime
+    , volumeExportURI        :: Maybe Text
+    , volumeServer           :: Maybe ServerRef
+} deriving (Show, Eq, Generic)
+
+instance FromJSON Volume where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = modify }
+    where
+      modify "volumeType" = "volume_type"
+      modify s            = snakeCase . drop (length volumePrefix) $ s
+
+
+newtype Volumes = Volumes { volumes :: [Volume] } deriving (Show, Eq, Generic)
+
+instance FromJSON Volumes
+
+
+volumeRefPrefix :: String
+volumeRefPrefix = "volumeRef"
 
 data VolumeRef = VolumeRef {
     volumeRefName :: Text
@@ -142,12 +198,12 @@ data VolumeRef = VolumeRef {
 } deriving (Show, Eq, Generic)
 
 instance FromJSON VolumeRef where
-  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop 9 }
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length volumeRefPrefix) }
 
 instance ToJSON VolumeRef
 
 
----
+-------------------------------------------------------------------------------
 
 data Region =
     Paris
