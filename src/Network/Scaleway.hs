@@ -3,11 +3,14 @@ module Network.Scaleway where
 
 import           Data.Text               (Text)
 import           Network.HTTP.Client.TLS (newTlsManager)
-import           Scaleway.Api            (Page, PerPage, XAuthToken, getServerM,
-                                          getServersM, getVolumesM)
-import           Scaleway.Types          (Region, Server, Servers, Volumes)
-import           Servant.Client          (BaseUrl (..), ClientEnv (..),
+import           Scaleway.Api            (Page, PerPage, XAuthToken, getImagesM,
+                                          getIpsM, getServerM, getServersM,
+                                          getVolumesM)
+import           Scaleway.Types          (Images, PublicIps, Region, Server,
+                                          Servers, Volumes)
+import           Servant.Client          (BaseUrl (..), ClientEnv (..), ClientM,
                                           Scheme (..), ServantError, runClientM)
+
 
 clientEnv :: Region -> IO ClientEnv
 clientEnv region = do
@@ -15,18 +18,35 @@ clientEnv region = do
   manager <- newTlsManager
   pure $ ClientEnv manager (BaseUrl Http host 80 "")
 
+
+getResources :: Region
+             -> ClientM a
+             -> IO (Either ServantError a)
+getResources region requestM = do
+  env <- clientEnv region
+  runClientM requestM env
+
+
 getServers :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError Servers)
-getServers region auth perPage page = do
-  clientEnv <- clientEnv region
-  runClientM (getServersM auth perPage page) clientEnv
+getServers region auth perPage page =
+  getResources region (getServersM auth perPage page)
+
 
 getServer :: Region -> Text -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError Server)
 getServer region serverId auth perPage page = do
-  clientEnv <- clientEnv region
-  runClientM (getServerM serverId auth perPage page) clientEnv
+  env <- clientEnv region
+  runClientM (getServerM serverId auth perPage page) env
 
 
 getVolumes :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError Volumes)
-getVolumes region auth perPage page = do
-  clientEnv <- clientEnv region
-  runClientM (getVolumesM auth perPage page) clientEnv
+getVolumes region auth perPage page =
+  getResources region (getVolumesM auth perPage page)
+
+
+getImages :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError Images)
+getImages region auth perPage page =
+  getResources region (getImagesM auth perPage page)
+
+getIps :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError PublicIps)
+getIps region auth perPage page =
+  getResources region (getIpsM auth perPage page)

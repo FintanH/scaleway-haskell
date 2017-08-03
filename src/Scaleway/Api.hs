@@ -8,7 +8,7 @@ module Scaleway.Api where
 import           Data.Proxy     (Proxy (..))
 import           Data.String    (IsString)
 import           Data.Text      (Text, pack)
-import           Scaleway.Types (Server, Servers, Volumes)
+import           Scaleway.Types (Images, PublicIps, Server, Servers, Volumes)
 import           Servant.API    ((:<|>) (..), (:>), Capture, Get, Header, JSON,
                                  QueryParam, ToHttpApiData (toUrlPiece))
 import           Servant.Client (ClientM, client)
@@ -29,6 +29,8 @@ instance ToHttpApiData Page where
 type ScalewayApi = "servers" :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] Servers
               :<|> "servers" :> Capture "serverId" Text :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] Server
               :<|> "volumes" :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] Volumes
+              :<|> "images"  :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] Images
+              :<|> "ips"     :> Header "X-Auth-Token" XAuthToken :> QueryParam "per_page" PerPage :> QueryParam "page" Page :> Get '[JSON] PublicIps
 
 api :: Proxy ScalewayApi
 api = Proxy
@@ -39,4 +41,8 @@ getServerM :: Text -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM
 
 getVolumesM :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Volumes
 
-getServersM :<|> getServerM :<|> getVolumesM = client api
+getImagesM :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Images
+
+getIpsM :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM PublicIps
+
+getServersM :<|> getServerM :<|> getVolumesM :<|> getImagesM :<|> getIpsM = client api

@@ -3,14 +3,15 @@
 
 module Scaleway.Types where
 
-import           Data.Aeson        (FromJSON (..), ToJSON, Value (Array),
-                                    genericParseJSON, withObject, withText,
-                                    (.:))
-import           Data.Aeson.Casing (snakeCase)
-import           Data.Aeson.TH     (defaultOptions, fieldLabelModifier)
-import           Data.Char         (toLower)
-import           Data.Text         (Text, unpack)
-import           Data.Time         (UTCTime)
+import           Data.Aeson          (FromJSON (..), ToJSON, Value (Array),
+                                      genericParseJSON, withObject, withText,
+                                      (.:))
+import           Data.Aeson.Casing   (snakeCase)
+import           Data.Aeson.TH       (defaultOptions, fieldLabelModifier)
+import           Data.Char           (toLower)
+import qualified Data.HashMap.Strict as HM
+import           Data.Text           (Text, unpack)
+import           Data.Time           (UTCTime)
 import           GHC.Generics
 
 
@@ -25,6 +26,11 @@ data Server = Server {
   , serverCommercialType :: CommercialType
   , serverTags           :: [Text]
   , serverEnableIpv6     :: Maybe Bool
+  , serverBootscript     :: Maybe BootScript
+  , serverPrivateIp      :: Maybe Text
+  , serverPublicIp       :: Maybe PublicIpRef
+  , serverState          :: ServerState
+  , serverVolumes        :: HM.HashMap Int Volume
 } deriving (Show, Eq, Generic)
 
 instance FromJSON Server where
@@ -47,8 +53,52 @@ data ServerRef = ServerRef {
 instance FromJSON ServerRef where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length serverRefPrefix) }
 
+
 -------------------------------------------------------------------------------
 
+
+bootScriptPrefix :: String
+bootScriptPrefix = "bootScript"
+
+data BootScript = BootScript {
+    bootScriptKernel       :: Text
+  , bootScriptInitrd       :: Text
+  , bootScriptBootcmdargs  :: Text
+  , bootScriptArchitecture :: Text
+  , bootScriptTitle        :: Text
+  , bootScriptDtb          :: Text
+  , bootScriptOrganization :: Text
+  , bootScriptId           :: Text
+  , bootScriptPublic       :: Bool
+} deriving (Show, Eq, Generic)
+
+instance FromJSON BootScript where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length bootScriptPrefix) }
+
+
+-------------------------------------------------------------------------------
+
+
+data ServerState = Running
+                 | Stopped
+                 | Booted
+                 deriving (Eq, Generic)
+
+instance Show ServerState where
+  show Running = "running"
+  show Stopped = "stopped"
+  show Booted  = "booted"
+
+instance FromJSON ServerState where
+  parseJSON = withText "server state" $ \t ->
+    case t of
+      "running" -> pure Running
+      "stopped" -> pure Stopped
+      "booted"  -> pure Booted
+      _         -> fail ("Server state " ++ (unpack t) ++ " was not recognised")
+
+
+-------------------------------------------------------------------------------
 
 data CommercialType = VC1S
                     | VC1M
@@ -115,6 +165,11 @@ instance FromJSON Image where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length imagePrefix) }
 
 
+newtype Images = Images { images :: [Image] } deriving (Show, Eq, Generic)
+
+instance FromJSON Images
+
+
 -------------------------------------------------------------------------------
 
 
@@ -150,17 +205,18 @@ rolePrefix = "role"
 
 data Role = Role {
     roleOrganization :: Maybe Text
-  , role             :: Maybe RoleType
+  , roleType         :: Maybe RoleType
 } deriving (Show, Eq, Generic)
 
 instance FromJSON Role where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = modify }
     where
-      modify "role" = "role"
-      modify s      = snakeCase . drop (length rolePrefix) $ s
+      modify "roleType" = "role"
+      modify s          = snakeCase . drop (length rolePrefix) $ s
 
 
 -------------------------------------------------------------------------------
+
 
 volumePrefix :: String
 volumePrefix = "volume"
@@ -200,10 +256,43 @@ data VolumeRef = VolumeRef {
 instance FromJSON VolumeRef where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length volumeRefPrefix) }
 
-instance ToJSON VolumeRef
+
+-------------------------------------------------------------------------------
+
+publicIpPrefix :: String
+publicIpPrefix = "publicIp"
+
+data PublicIp = PublicIp {
+    publicIpId           :: Text
+  , publicIpAddress      :: Text
+  , publicIpOrganization :: Text
+  , publicIpServer       :: ServerRef
+} deriving (Show, Eq, Generic)
+
+instance FromJSON PublicIp where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length publicIpPrefix) }
+
+
+newtype PublicIps = PublicIps { ips :: [PublicIp] } deriving (Show, Eq, Generic)
+
+instance FromJSON PublicIps
+
+
+publicIpRefPrefix :: String
+publicIpRefPrefix = "publicIpRef"
+
+data PublicIpRef = PublicIpRef {
+    publicIpRefId      :: Text
+  , publicIpRefAddress :: Text
+  , publicIpRefDynamic :: Maybe Bool
+} deriving (Show, Eq, Generic)
+
+instance FromJSON PublicIpRef where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length publicIpRefPrefix) }
 
 
 -------------------------------------------------------------------------------
+
 
 data Region =
     Paris
