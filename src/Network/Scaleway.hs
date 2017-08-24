@@ -3,9 +3,8 @@ module Network.Scaleway where
 
 import           Data.Text               (Text)
 import           Network.HTTP.Client.TLS (newTlsManager)
-import           Scaleway.Api            (Page, PerPage, XAuthToken, getImagesM,
-                                          getIpsM, getServerM, getServersM,
-                                          getVolumesM)
+import           Scaleway.API            (getServerM, getServersM)
+import           Scaleway.API.Core       (Page, PerPage, XAuthToken)
 import           Scaleway.Types          (Images, PublicIps, Region, Server,
                                           Servers, Volumes)
 import           Servant.Client          (BaseUrl (..), ClientEnv (..), ClientM,
@@ -35,18 +34,18 @@ getServers region auth perPage page =
 getServer :: Region -> Text -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError Server)
 getServer region serverId auth perPage page = do
   env <- clientEnv region
-  runClientM (getServerM serverId auth perPage page) env
+  runClientM (getServerM auth serverId perPage page) env
 
 
-getVolumes :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError Volumes)
-getVolumes region auth perPage page =
-  getResources region (getVolumesM auth perPage page)
-
-
-getImages :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError Images)
-getImages region auth perPage page =
-  getResources region (getImagesM auth perPage page)
-
-getIps :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError PublicIps)
-getIps region auth perPage page =
-  getResources region (getIpsM auth perPage page)
+-- getVolumes :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError Volumes)
+-- getVolumes region auth perPage page =
+--   getResources region (getVolumesM auth perPage page)
+--
+--
+-- getImages :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError Images)
+-- getImages region auth perPage page =
+--   getResources region (getImagesM auth perPage page)
+--
+-- getIps :: Region -> Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> IO (Either ServantError PublicIps)
+-- getIps region auth perPage page =
+--   getResources region (getIpsM auth perPage page)

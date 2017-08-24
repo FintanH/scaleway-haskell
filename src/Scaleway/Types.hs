@@ -3,16 +3,19 @@
 
 module Scaleway.Types where
 
-import           Data.Aeson          (FromJSON (..), ToJSON, Value (Array),
-                                      genericParseJSON, withObject, withText,
-                                      (.:))
+import           Data.Aeson          (FromJSON (..), ToJSON (..),
+                                      Value (Array, String), genericParseJSON,
+                                      genericToJSON, withObject, withText, (.:))
 import           Data.Aeson.Casing   (snakeCase)
 import           Data.Aeson.TH       (defaultOptions, fieldLabelModifier)
 import           Data.Char           (toLower)
 import qualified Data.HashMap.Strict as HM
-import           Data.Text           (Text, unpack)
+import           Data.Text           (Text, pack, unpack)
 import           Data.Time           (UTCTime)
 import           GHC.Generics
+
+
+-------------------------------------------------------------------------------
 
 
 serverPrefix :: String
@@ -36,10 +39,34 @@ data Server = Server {
 instance FromJSON Server where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length serverPrefix) }
 
+instance ToJSON Server where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length serverPrefix) }
 
 newtype Servers = Servers { servers :: [Server] } deriving (Show, Eq, Generic)
 
 instance FromJSON Servers
+
+
+newtype ServerResult = ServerResult { server :: Server }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON ServerResult
+
+
+serverCreatePrefix :: String
+serverCreatePrefix = "serverCreate"
+
+data ServerCreate = ServerCreate {
+    serverCreateOrganization   :: Text
+  , serverCreateName           :: Text
+  , serverCreateCommercialType :: CommercialType
+  , serverCreateImage          :: Text
+  , serverCreateTags           :: [Text]
+  , serverCreateEnableIpv6     :: Bool
+} deriving (Show, Eq, Generic)
+
+instance ToJSON ServerCreate where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length serverCreatePrefix) }
 
 
 serverRefPrefix :: String
@@ -52,6 +79,9 @@ data ServerRef = ServerRef {
 
 instance FromJSON ServerRef where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length serverRefPrefix) }
+
+instance ToJSON ServerRef where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length serverRefPrefix) }
 
 
 -------------------------------------------------------------------------------
@@ -76,6 +106,10 @@ instance FromJSON BootScript where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length bootScriptPrefix) }
 
 
+instance ToJSON BootScript where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length bootScriptPrefix) }
+
+
 -------------------------------------------------------------------------------
 
 
@@ -96,6 +130,9 @@ instance FromJSON ServerState where
       "stopped" -> pure Stopped
       "booted"  -> pure Booted
       _         -> fail ("Server state " ++ (unpack t) ++ " was not recognised")
+
+instance ToJSON ServerState where
+  toJSON = String . pack . map toLower . show
 
 
 -------------------------------------------------------------------------------
@@ -122,8 +159,11 @@ instance FromJSON CommercialType where
       "C2L"         -> pure C2L
       "ARM64-128GB" -> pure ARM64_128GB
       _             -> fail $ "Unknown commercial_type: " ++ (unpack t)
-instance ToJSON CommercialType
 
+instance ToJSON CommercialType where
+  toJSON ct = case ct of
+    ARM64_128GB -> String "ARM64-128GB"
+    ct          -> String . pack . show $ ct
 
 -------------------------------------------------------------------------------
 
@@ -138,6 +178,12 @@ data Organization = Organization {
 
 instance FromJSON Organization where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length organizationPrefix) }
+
+
+newtype Organizations = Organizations { organizations :: [Organization] }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON Organizations
 
 
 -------------------------------------------------------------------------------
@@ -164,6 +210,8 @@ data Image = Image {
 instance FromJSON Image where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length imagePrefix) }
 
+instance ToJSON Image where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length imagePrefix) }
 
 newtype Images = Images { images :: [Image] } deriving (Show, Eq, Generic)
 
@@ -239,6 +287,12 @@ instance FromJSON Volume where
       modify "volumeType" = "volume_type"
       modify s            = snakeCase . drop (length volumePrefix) $ s
 
+instance ToJSON Volume where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = modify }
+    where
+      modify "volumeType" = "volume_type"
+      modify s            = snakeCase . drop (length volumePrefix) $ s
+
 
 newtype Volumes = Volumes { volumes :: [Volume] } deriving (Show, Eq, Generic)
 
@@ -255,6 +309,9 @@ data VolumeRef = VolumeRef {
 
 instance FromJSON VolumeRef where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length volumeRefPrefix) }
+
+instance ToJSON VolumeRef where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length volumeRefPrefix) }
 
 
 -------------------------------------------------------------------------------
@@ -289,6 +346,10 @@ data PublicIpRef = PublicIpRef {
 
 instance FromJSON PublicIpRef where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length publicIpRefPrefix) }
+
+
+instance ToJSON PublicIpRef where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length publicIpRefPrefix) }
 
 
 -------------------------------------------------------------------------------

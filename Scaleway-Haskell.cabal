@@ -26,9 +26,11 @@ library
                      , Scaleway.Network.SecurityRule
                      , Scaleway.Network.Snapshot
                      , Scaleway.Network.Token
-                     , Scaleway.Api
+                     , Scaleway.API
                      , Scaleway.Types
-                     , Network.Scaleway
+                     , Scaleway.API.Core
+                     , Scaleway.API.Server
+                     , Scaleway.API.Organization
   other-modules:      Scaleway.Internal.Request
                     , Scaleway.Internal.Types
                     , Scaleway.Internal.Types.Server
