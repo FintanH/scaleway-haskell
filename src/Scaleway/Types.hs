@@ -15,6 +15,10 @@ import           Data.Time           (UTCTime)
 import           GHC.Generics
 
 
+-- data AccountResource = AccountOrganizations Organization
+--                      | AccountUsers User
+--                      | AccountToken Token
+
 -------------------------------------------------------------------------------
 
 
@@ -268,9 +272,30 @@ instance FromJSON Image where
 instance ToJSON Image where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length imagePrefix) }
 
+
 newtype Images = Images { images :: [Image] } deriving (Show, Eq, Generic)
 
 instance FromJSON Images
+
+
+newtype ImageResult = ImageResult { image :: Image }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON ImageResult
+
+
+imageCreatePrefix :: String
+imageCreatePrefix = "imageCreate"
+
+data ImageCreate = ImageCreate {
+    imageCreateOrganization :: Text
+  , imageCreateArch         :: Text
+  , imageCreateName         :: Text
+  , imageCreateRootVolume   :: Text
+} deriving (Show, Eq, Generic)
+
+instance ToJSON ImageCreate where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length imageCreatePrefix) }
 
 
 -------------------------------------------------------------------------------
@@ -317,6 +342,12 @@ instance FromJSON Role where
       modify "roleType" = "role"
       modify s          = snakeCase . drop (length rolePrefix) $ s
 
+instance ToJSON Role where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = modify }
+    where
+      modify "roleType" = "role"
+      modify s          = snakeCase . drop (length rolePrefix) $ s
+
 
 -------------------------------------------------------------------------------
 
@@ -352,6 +383,26 @@ instance ToJSON Volume where
 newtype Volumes = Volumes { volumes :: [Volume] } deriving (Show, Eq, Generic)
 
 instance FromJSON Volumes
+
+
+newtype VolumeResult = VolumeResult { volume :: Volume }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON VolumeResult
+
+
+volumeCreatePrefix :: String
+volumeCreatePrefix = "volumeCreate"
+
+data VolumeCreate = VolumeCreate {
+    volumeCreateName         :: Text
+  , volumeCreateOrganization :: Text
+  , volumeCreate             :: Int
+  , volumeCreateVolumeType   :: Text
+} deriving (Show, Eq, Generic)
+
+instance ToJSON VolumeCreate where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length volumeCreatePrefix) }
 
 
 volumeRefPrefix :: String
@@ -405,6 +456,240 @@ instance FromJSON PublicIpRef where
 
 instance ToJSON PublicIpRef where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length publicIpRefPrefix) }
+
+
+-------------------------------------------------------------------------------
+
+securityGroupPrefix :: String
+securityGroupPrefix = "securityGroupRef"
+
+data SecurityGroup = SecurityGroup {
+    securityGroupId                    :: Text
+  , securityGroupName                  :: Text
+  , securityGroupOrganization          :: Text
+  , securityGroupDescription           :: Text
+  , securityGroupEnableDefaultSecurity :: Bool
+  , securityGroupOrganizationDefault   :: Bool
+  , securityGroupServers               :: [ServerRef]
+} deriving (Show, Eq, Generic)
+
+instance FromJSON SecurityGroup where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length securityGroupPrefix) }
+
+instance ToJSON SecurityGroup where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length securityGroupPrefix) }
+
+
+newtype SecurityGroups = SecurityGroups { securityGroups :: [SecurityGroup] }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON SecurityGroups where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase }
+
+
+newtype SecurityGroupResult = SecurityGroupResult { securityGroup :: SecurityGroup }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON SecurityGroupResult where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase }
+
+
+securityGroupCreate :: String
+securityGroupCreate = "securityGroupCreate"
+
+data SecurityGroupCreate = SecurityGroupCreate {
+    securityGroupCreateOrganization :: Text
+  , securityGroupCreateName         :: Text
+  , securityGroupCreateDescription  :: Text
+} deriving (Show, Eq, Generic)
+
+instance ToJSON SecurityGroupCreate where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length securityGroupCreate) }
+
+
+-------------------------------------------------------------------------------
+
+
+snapshotPrefix :: String
+snapshotPrefix = "snapshot"
+
+data Snapshot = Snapshot {
+    snapshotId           :: Text
+  , snapshotName         :: Text
+  , snapshotOrganization :: Text
+  , snapshotBaseVolume   :: VolumeRef
+  , snapshotCreationDate :: UTCTime
+  , snapshotSize         :: Int
+  , snapshotState        :: SnapshotState
+  , snapshotVolumeType   :: Text
+} deriving (Show, Eq, Generic)
+
+instance FromJSON Snapshot where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length snapshotPrefix) }
+
+instance ToJSON Snapshot where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length snapshotPrefix) }
+
+
+data SnapshotState =
+    Snapshotting
+  | Snapshotted
+  deriving (Show, Eq)
+
+instance FromJSON SnapshotState where
+  parseJSON = withText "snap shot state" $ \t ->
+    case t of
+      "snapshotting" -> pure Snapshotting
+      "snapshotted"  -> pure Snapshotted
+      _              -> fail ("Could not make SnapshotState type with: " ++ unpack t)
+
+instance ToJSON SnapshotState where
+  toJSON = String . pack . map toLower . show
+
+
+newtype Snapshots = Snapshots { snapshots :: [Snapshot] }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON Snapshots
+
+
+newtype SnapshotResult = SnapshotResult { snapshot :: Snapshot }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON SnapshotResult
+
+
+snapshotCreate :: String
+snapshotCreate = "snapshotCreate"
+
+data SnapshotCreate = SnapshotCreate {
+    snapshotCreateName         :: Text
+  , snapshotCreateOrganization :: Text
+  , snapshotCreateVolumeId     :: Text
+} deriving (Show, Eq, Generic)
+
+instance ToJSON SnapshotCreate where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length snapshotCreate) }
+
+
+-------------------------------------------------------------------------------
+
+tokenPrefix :: String
+tokenPrefix = "token"
+
+data Token = Token {
+    tokenId                :: Text
+  , tokenCreationDate      :: UTCTime
+  , tokenExpires           :: Bool
+  , tokenInheritsUserPerms :: Bool
+  , tokenPermissions       :: [Text]
+  , tokenRoles             :: Role
+} deriving (Show, Eq, Generic)
+
+instance FromJSON Token where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length tokenPrefix) }
+
+instance ToJSON Token where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length tokenPrefix) }
+
+
+newtype Tokens = Tokens { tokens :: [Token] }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON Tokens
+
+
+newtype TokenResult = TokenResult { token :: Token }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON TokenResult
+
+
+tokenCreatePrefix :: String
+tokenCreatePrefix = "tokenCreate"
+
+data TokenCreate = TokenCreate {
+    tokenCreateEmail    :: Text
+  , tokenCreatePassword :: Text
+  , tokenCreateExpires  :: Bool
+} deriving (Show, Eq, Generic)
+
+instance ToJSON TokenCreate where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length tokenCreatePrefix) }
+
+
+-------------------------------------------------------------------------------
+
+securityRulePrefix :: String
+securityRulePrefix = "securityRule"
+
+data SecurityRule = SecurityRule {
+    securityRuleId           :: Text
+  , securityRuleAction       :: Text
+  , securityRuleDirection    :: Direction
+  , securityRuleProtocol     :: Protocol
+  , securityRuleIpRange      :: Text
+  , securityRuleDestPortFrom :: Maybe Int
+  , securityRuleDestPortTo   :: Maybe Int
+  , securityRulePosition     :: Int
+  , securityRuleEditable     :: Maybe Bool
+} deriving (Show, Eq, Generic)
+
+instance FromJSON SecurityRule where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length securityRulePrefix) }
+
+instance ToJSON SecurityRule where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length securityRulePrefix) }
+
+data SecurityRules = SecurityRules { securityRules :: [SecurityRule] }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON SecurityRules where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase }
+
+
+data SecurityRuleResult = SecurityRuleResult { securityRule :: SecurityRule }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON SecurityRuleResult where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase }
+
+
+securityRuleCreatePrefix :: String
+securityRuleCreatePrefix = "securityRuleCreate"
+
+data SecurityRuleCreate = SecurityRuleCreate {
+    securityRuleCreateAction    :: Text
+  , securityRuleCreateDirection :: Direction
+  , securityRuleCreateIpRange   :: Text
+  , securityRuleCreateProtocol  :: Protocol
+} deriving (Show, Eq, Generic)
+
+instance ToJSON SecurityRuleCreate where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length securityRuleCreatePrefix) }
+
+
+data Direction = Inbound
+               | Outbound
+               deriving (Show, Eq)
+
+instance FromJSON Direction where
+  parseJSON = withText "direction" $ \t ->
+    case t of
+      "inbound"  -> return Inbound
+      "outbound" -> return Outbound
+      _          -> fail $ "Could not parse direction: " ++ unpack t
+
+instance ToJSON Direction where
+  toJSON = String . pack . map toLower . show
+
+data Protocol = TCP
+              | UDP
+              deriving (Show, Eq, Generic)
+
+instance FromJSON Protocol
+
+instance ToJSON Protocol
 
 
 -------------------------------------------------------------------------------

@@ -16,31 +16,16 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Scaleway
-                     , Scaleway.Network
-                     , Scaleway.Network.Server
-                     , Scaleway.Network.Volume
-                     , Scaleway.Network.Image
-                     , Scaleway.Network.Organization
-                     , Scaleway.Network.User
-                     , Scaleway.Network.SecurityGroup
-                     , Scaleway.Network.SecurityRule
-                     , Scaleway.Network.Snapshot
-                     , Scaleway.Network.Token
                      , Scaleway.API
                      , Scaleway.Types
                      , Scaleway.API.Core
                      , Scaleway.API.Server
+                     , Scaleway.API.Volume
+                     , Scaleway.API.Image
+                     , Scaleway.API.SecurityGroup
+                     , Scaleway.API.Snapshot
                      , Scaleway.API.Organization
-  other-modules:      Scaleway.Internal.Request
-                    , Scaleway.Internal.Types
-                    , Scaleway.Internal.Types.Server
-                    , Scaleway.Internal.Types.Volume
-                    , Scaleway.Internal.Types.Image
-                    , Scaleway.Internal.Types.ResourceId
-                    , Scaleway.Internal.Types.SecurityGroup
-                    , Scaleway.Internal.Types.SecurityRule
-                    , Scaleway.Internal.Types.Snapshot
-                    , Scaleway.Internal.Types.Get
+                     , Scaleway.API.Token
   build-depends:       base >= 4.7 && < 5
                      , text
                      , aeson

@@ -23,8 +23,8 @@ type OrganizationAPI =
                        :> QueryParam "page" Page
                        :> Get '[JSON] Organizations
 
-serverAPI :: Proxy OrganizationAPI
-serverAPI = Proxy
+organizationAPI :: Proxy OrganizationAPI
+organizationAPI = Proxy
 
 getOrganizationsM :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Organizations
-getOrganizationsM = client serverAPI
+getOrganizationsM = client organizationAPI

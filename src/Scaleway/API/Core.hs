@@ -74,12 +74,12 @@ scalewayPostRequest r postData = do
   token <- ask
   lift $ r (Just token) postData
 
-scalewayPutRequest :: FromJSON a
-                   => (Maybe XAuthToken -> Text -> ClientM a)
-                   -> Text -> ScalewayClient a
-scalewayPutRequest r resourceId = do
+scalewayPutRequest :: (ToJSON a, FromJSON b)
+                   => (Maybe XAuthToken -> Text -> a -> ClientM b)
+                   -> Text -> a -> ScalewayClient b
+scalewayPutRequest r resourceId body = do
   token <- ask
-  lift $ r (Just token) resourceId
+  lift $ r (Just token) resourceId body
 
 scalewayDeleteRequest :: (Maybe XAuthToken -> Text -> ClientM ())
                       -> Text -> ScalewayClient ()
