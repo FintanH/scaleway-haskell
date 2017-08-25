@@ -15,23 +15,23 @@ module Scaleway.API.Token
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken,
+                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    Token, TokenCreate, TokenResult, Tokens)
+                                    Token, TokenCreate, TokenResult, Tokens, TokenId)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
 
-type CaptureTokenId = Capture "tokenId" Text
+type CaptureTokenId = Capture "tokenId" TokenId
 
 type TokenAPI = "tokens" :> (
        ScalewayAuthToken
-    :> QueryParam "per_page" PerPage
-    :> QueryParam "page" Page
+    :> ParamPerPage
+    :> ParamPage
     :> Get '[JSON] Tokens
 
   :<|> ScalewayAuthToken
@@ -56,10 +56,10 @@ tokenAPI :: Proxy TokenAPI
 tokenAPI = Proxy
 
 getTokens_ :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Tokens
-getToken_ :: Maybe XAuthToken -> Text -> ClientM Token
+getToken_ :: Maybe XAuthToken -> TokenId -> ClientM Token
 postToken_ :: Maybe XAuthToken -> TokenCreate -> ClientM TokenResult
-putToken_ :: Maybe XAuthToken -> Text -> Token -> ClientM TokenResult
-deleteToken_ :: Maybe XAuthToken -> Text -> ClientM ()
+putToken_ :: Maybe XAuthToken -> TokenId -> Token -> ClientM TokenResult
+deleteToken_ :: Maybe XAuthToken -> TokenId -> ClientM ()
 getTokens_
   :<|> getToken_
   :<|> postToken_
@@ -69,14 +69,14 @@ getTokens_
 getTokensM :: Maybe PerPage -> Maybe Page -> ScalewayClient Tokens
 getTokensM = scalewayGetListRequest getTokens_
 
-getTokenM :: Text -> ScalewayClient Token
+getTokenM :: TokenId -> ScalewayClient Token
 getTokenM = scalewayGetSingleRequest getToken_
 
 postTokenM :: TokenCreate -> ScalewayClient TokenResult
 postTokenM = scalewayPostRequest postToken_
 
-putTokenM :: Text -> Token -> ScalewayClient TokenResult
+putTokenM :: TokenId -> Token -> ScalewayClient TokenResult
 putTokenM = scalewayPutRequest putToken_
 
-deleteTokenM :: Text -> ScalewayClient ()
+deleteTokenM :: TokenId -> ScalewayClient ()
 deleteTokenM = scalewayDeleteRequest deleteToken_

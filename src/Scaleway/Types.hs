@@ -13,29 +13,36 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Text           (Text, pack, unpack)
 import           Data.Time           (UTCTime)
 import           GHC.Generics
+import           Servant.API         (ToHttpApiData (toUrlPiece))
 
-
--- data AccountResource = AccountOrganizations Organization
---                      | AccountUsers User
---                      | AccountToken Token
 
 -------------------------------------------------------------------------------
+
+
+newtype ServerId = ServerId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
+
+newtype ServerName = ServerName Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
+
+newtype Tags = Tags [Text]
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 
 serverPrefix :: String
 serverPrefix = "server"
 
 data Server = Server {
-    serverId             :: Text
-  , serverName           :: Text
-  , serverOrganization   :: Text
+    serverId             :: ServerId
+  , serverName           :: ServerName
+  , serverOrganization   :: OrganizationId
   , serverImage          :: Image
   , serverCommercialType :: CommercialType
-  , serverTags           :: [Text]
+  , serverTags           :: Tags
   , serverEnableIpv6     :: Maybe Bool
   , serverBootscript     :: Maybe BootScript
   , serverPrivateIp      :: Maybe Text
-  , serverPublicIp       :: Maybe PublicIpRef
+  , serverPublicIp       :: Maybe IpRef
   , serverState          :: ServerState
   , serverVolumes        :: HM.HashMap Int Volume
 } deriving (Show, Eq, Generic)
@@ -61,11 +68,11 @@ serverCreatePrefix :: String
 serverCreatePrefix = "serverCreate"
 
 data ServerCreate = ServerCreate {
-    serverCreateOrganization   :: Text
-  , serverCreateName           :: Text
+    serverCreateOrganization   :: OrganizationId
+  , serverCreateName           :: ServerName
   , serverCreateCommercialType :: CommercialType
-  , serverCreateImage          :: Text
-  , serverCreateTags           :: [Text]
+  , serverCreateImage          :: ImageId
+  , serverCreateTags           :: Tags
   , serverCreateEnableIpv6     :: Bool
 } deriving (Show, Eq, Generic)
 
@@ -90,19 +97,22 @@ instance ToJSON ServerRef where
 
 -------------------------------------------------------------------------------
 
+newtype BootScriptId = BootScriptId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+
 
 bootScriptPrefix :: String
 bootScriptPrefix = "bootScript"
 
 data BootScript = BootScript {
-    bootScriptKernel       :: Text
+    bootScriptId           :: BootScriptId
+  , bootScriptKernel       :: Text
   , bootScriptInitrd       :: Text
   , bootScriptBootcmdargs  :: Text
   , bootScriptArchitecture :: Text
   , bootScriptTitle        :: Text
   , bootScriptDtb          :: Text
-  , bootScriptOrganization :: Text
-  , bootScriptId           :: Text
+  , bootScriptOrganization :: OrganizationId
   , bootScriptPublic       :: Bool
 } deriving (Show, Eq, Generic)
 
@@ -112,7 +122,6 @@ instance FromJSON BootScript where
 
 instance ToJSON BootScript where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length bootScriptPrefix) }
-
 
 -------------------------------------------------------------------------------
 
@@ -148,6 +157,12 @@ data CommercialType = VC1S
                     | C2S
                     | C2M
                     | C2L
+                    | ARM64_2GB
+                    | ARM64_4GB
+                    | ARM64_8GB
+                    | ARM64_16GB
+                    | ARM64_32GB
+                    | ARM64_64GB
                     | ARM64_128GB
                     deriving (Show, Eq)
 
@@ -161,11 +176,23 @@ instance FromJSON CommercialType where
       "C2S"         -> pure C2S
       "C2M"         -> pure C2M
       "C2L"         -> pure C2L
+      "ARM64_2GB"   -> pure ARM64_2GB
+      "ARM64-4GB"   -> pure ARM64_4GB
+      "ARM64-8GB"   -> pure ARM64_8GB
+      "ARM64-16GB"  -> pure ARM64_16GB
+      "ARM64-32GB"  -> pure ARM64_32GB
+      "ARM64-64GB"  -> pure ARM64_64GB
       "ARM64-128GB" -> pure ARM64_128GB
       _             -> fail $ "Unknown commercial_type: " ++ (unpack t)
 
 instance ToJSON CommercialType where
   toJSON ct = case ct of
+    ARM64_2GB   -> String "ARM64-128GB"
+    ARM64_4GB   -> String "ARM64-128GB"
+    ARM64_8GB   -> String "ARM64-128GB"
+    ARM64_16GB  -> String "ARM64-128GB"
+    ARM64_32GB  -> String "ARM64-128GB"
+    ARM64_64GB  -> String "ARM64-128GB"
     ARM64_128GB -> String "ARM64-128GB"
     ct          -> String . pack . show $ ct
 
@@ -202,13 +229,18 @@ newtype ActionRequest = ActionRequest { action :: Action }
 
 instance ToJSON ActionRequest
 
+
+newtype TaskId = TaskId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+
+
 taskPrefix :: String
 taskPrefix = "task"
 
 data Task = Task {
-    taskDescription :: Text
+    taskId          :: TaskId
+  , taskDescription :: Text
   , taskHrefFrom    :: Text
-  , taskId          :: Text
   , taskProgress    :: Text
   , taskStatus      :: Text
 } deriving (Show, Eq, Generic)
@@ -225,13 +257,18 @@ instance FromJSON ActionResponse
 
 -------------------------------------------------------------------------------
 
+newtype OrganizationId = OrganizationId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
+
+newtype OrganizationName = OrganizationName Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
 
 organizationPrefix :: String
 organizationPrefix = "organization"
 
 data Organization = Organization {
-    organizationId    :: Text
-  , organizationName  :: Text
+    organizationId    :: OrganizationId
+  , organizationName  :: OrganizationName
   , organizationUsers :: [User]
 } deriving (Show, Eq, Generic)
 
@@ -247,14 +284,19 @@ instance FromJSON Organizations
 
 -------------------------------------------------------------------------------
 
+newtype ImageId = ImageId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
+
+newtype ImageName = ImageName Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
 
 imagePrefix :: String
 imagePrefix = "image"
 
 data Image = Image {
-    imageId               :: Text
-  , imageName             :: Text
-  , imageOrganization     :: Text
+    imageId               :: ImageId
+  , imageName             :: ImageName
+  , imageOrganization     :: OrganizationId
   , imageRootVolume       :: VolumeRef
   , imageArch             :: Text
   , imageCreationDate     :: UTCTime
@@ -288,10 +330,10 @@ imageCreatePrefix :: String
 imageCreatePrefix = "imageCreate"
 
 data ImageCreate = ImageCreate {
-    imageCreateOrganization :: Text
+    imageCreateOrganization :: OrganizationId
   , imageCreateArch         :: Text
-  , imageCreateName         :: Text
-  , imageCreateRootVolume   :: Text
+  , imageCreateName         :: ImageName
+  , imageCreateRootVolume   :: VolumeId
 } deriving (Show, Eq, Generic)
 
 instance ToJSON ImageCreate where
@@ -300,17 +342,32 @@ instance ToJSON ImageCreate where
 
 -------------------------------------------------------------------------------
 
+newtype UserId = UserId Text
+  deriving (Show, Eq, Generic, FromJSON)
+
+newtype UserEmail = UserEmail Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+
+newtype UserFirstName = UserFirstName Text
+  deriving (Show, Eq, Generic, FromJSON)
+
+newtype UserLastName = UserLastName Text
+  deriving (Show, Eq, Generic, FromJSON)
+
+newtype UserFullName = UserFullName Text
+  deriving (Show, Eq, Generic, FromJSON)
+
 
 userPrefix :: String
 userPrefix = "user"
 
 data User = User {
-    userId            :: Text
-  , userEmail         :: Text
-  , userFirstname     :: Text
-  , userLastname      :: Text
-  , userFullname      :: Text
-  , userOrganizations :: Maybe [Text]
+    userId            :: UserId
+  , userEmail         :: UserEmail
+  , userFirstname     :: UserFirstName
+  , userLastname      :: UserLastName
+  , userFullname      :: UserFullName
+  , userOrganizations :: Maybe [OrganizationId]
   , userRoles         :: Maybe [Role]
   , userSshPublicKeys :: Maybe [Text]
 } deriving (Show, Eq, Generic)
@@ -332,7 +389,7 @@ rolePrefix :: String
 rolePrefix = "role"
 
 data Role = Role {
-    roleOrganization :: Maybe Text
+    roleOrganization :: Maybe OrganizationId
   , roleType         :: Maybe RoleType
 } deriving (Show, Eq, Generic)
 
@@ -351,14 +408,20 @@ instance ToJSON Role where
 
 -------------------------------------------------------------------------------
 
+newtype VolumeId = VolumeId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
+
+newtype VolumeName = VolumeName Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
+
 
 volumePrefix :: String
 volumePrefix = "volume"
 
 data Volume = Volume {
-      volumeId               :: Text
-    , volumeName             :: Text
-    , volumeOrganization     :: Text
+      volumeId               :: VolumeId
+    , volumeName             :: VolumeName
+    , volumeOrganization     :: OrganizationId
     , volumeSize             :: Int
     , volumeType             :: Text
     , volumeModificationDate :: Maybe UTCTime
@@ -395,8 +458,8 @@ volumeCreatePrefix :: String
 volumeCreatePrefix = "volumeCreate"
 
 data VolumeCreate = VolumeCreate {
-    volumeCreateName         :: Text
-  , volumeCreateOrganization :: Text
+    volumeCreateName         :: VolumeName
+  , volumeCreateOrganization :: OrganizationId
   , volumeCreate             :: Int
   , volumeCreateVolumeType   :: Text
 } deriving (Show, Eq, Generic)
@@ -409,8 +472,8 @@ volumeRefPrefix :: String
 volumeRefPrefix = "volumeRef"
 
 data VolumeRef = VolumeRef {
-    volumeRefName :: Text
-  , volumeRefId   :: Text
+    volumeRefName :: VolumeName
+  , volumeRefId   :: VolumeId
 } deriving (Show, Eq, Generic)
 
 instance FromJSON VolumeRef where
@@ -422,51 +485,80 @@ instance ToJSON VolumeRef where
 
 -------------------------------------------------------------------------------
 
-publicIpPrefix :: String
-publicIpPrefix = "publicIp"
+newtype IpId = IpId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
 
-data PublicIp = PublicIp {
-    publicIpId           :: Text
-  , publicIpAddress      :: Text
-  , publicIpOrganization :: Text
-  , publicIpServer       :: ServerRef
+ipPrefix :: String
+ipPrefix = "ip"
+
+data Ip = Ip {
+    ipId           :: IpId
+  , ipAddress      :: Text
+  , ipOrganization :: OrganizationId
+  , ipServer       :: Maybe ServerRef
 } deriving (Show, Eq, Generic)
 
-instance FromJSON PublicIp where
-  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length publicIpPrefix) }
+instance FromJSON Ip where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length ipPrefix) }
+
+instance ToJSON Ip where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length ipPrefix) }
+
+newtype Ips = Ips { ips :: [Ip] }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON Ips
 
 
-newtype PublicIps = PublicIps { ips :: [PublicIp] } deriving (Show, Eq, Generic)
+newtype IpResult = IpResult { ip :: Ip }
+  deriving (Show, Eq, Generic)
 
-instance FromJSON PublicIps
+instance FromJSON IpResult
 
 
-publicIpRefPrefix :: String
-publicIpRefPrefix = "publicIpRef"
+ipCreatePrefix :: String
+ipCreatePrefix = "ipCreate"
 
-data PublicIpRef = PublicIpRef {
-    publicIpRefId      :: Text
-  , publicIpRefAddress :: Text
-  , publicIpRefDynamic :: Maybe Bool
+data IpCreate = IpCreate {
+    ipCreateOrganization :: OrganizationId
 } deriving (Show, Eq, Generic)
 
-instance FromJSON PublicIpRef where
-  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length publicIpRefPrefix) }
+instance ToJSON IpCreate where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length ipCreatePrefix) }
 
 
-instance ToJSON PublicIpRef where
-  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length publicIpRefPrefix) }
+ipRefPrefix :: String
+ipRefPrefix = "ipRef"
+
+data IpRef = IpRef {
+    ipRefId      :: IpId
+  , ipRefAddress :: Text
+  , ipRefDynamic :: Maybe Bool
+} deriving (Show, Eq, Generic)
+
+instance FromJSON IpRef where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length ipRefPrefix) }
+
+instance ToJSON IpRef where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length ipRefPrefix) }
 
 
 -------------------------------------------------------------------------------
+
+newtype SecurityGroupId = SecurityGroupId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
+
+newtype SecurityGroupName = SecurityGroupName Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+
 
 securityGroupPrefix :: String
 securityGroupPrefix = "securityGroupRef"
 
 data SecurityGroup = SecurityGroup {
-    securityGroupId                    :: Text
-  , securityGroupName                  :: Text
-  , securityGroupOrganization          :: Text
+    securityGroupId                    :: SecurityGroupId
+  , securityGroupName                  :: SecurityGroupName
+  , securityGroupOrganization          :: OrganizationId
   , securityGroupDescription           :: Text
   , securityGroupEnableDefaultSecurity :: Bool
   , securityGroupOrganizationDefault   :: Bool
@@ -498,8 +590,8 @@ securityGroupCreate :: String
 securityGroupCreate = "securityGroupCreate"
 
 data SecurityGroupCreate = SecurityGroupCreate {
-    securityGroupCreateOrganization :: Text
-  , securityGroupCreateName         :: Text
+    securityGroupCreateOrganization :: OrganizationId
+  , securityGroupCreateName         :: SecurityGroupName
   , securityGroupCreateDescription  :: Text
 } deriving (Show, Eq, Generic)
 
@@ -510,13 +602,20 @@ instance ToJSON SecurityGroupCreate where
 -------------------------------------------------------------------------------
 
 
+newtype SnapshotId = SnapshotId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
+
+newtype SnapshotName = SnapshotName Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+
+
 snapshotPrefix :: String
 snapshotPrefix = "snapshot"
 
 data Snapshot = Snapshot {
-    snapshotId           :: Text
-  , snapshotName         :: Text
-  , snapshotOrganization :: Text
+    snapshotId           :: SnapshotId
+  , snapshotName         :: SnapshotName
+  , snapshotOrganization :: OrganizationId
   , snapshotBaseVolume   :: VolumeRef
   , snapshotCreationDate :: UTCTime
   , snapshotSize         :: Int
@@ -563,9 +662,9 @@ snapshotCreate :: String
 snapshotCreate = "snapshotCreate"
 
 data SnapshotCreate = SnapshotCreate {
-    snapshotCreateName         :: Text
-  , snapshotCreateOrganization :: Text
-  , snapshotCreateVolumeId     :: Text
+    snapshotCreateName         :: SnapshotName
+  , snapshotCreateOrganization :: OrganizationId
+  , snapshotCreateVolumeId     :: VolumeId
 } deriving (Show, Eq, Generic)
 
 instance ToJSON SnapshotCreate where
@@ -574,11 +673,16 @@ instance ToJSON SnapshotCreate where
 
 -------------------------------------------------------------------------------
 
+
+newtype TokenId = TokenId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
+
+
 tokenPrefix :: String
 tokenPrefix = "token"
 
 data Token = Token {
-    tokenId                :: Text
+    tokenId                :: TokenId
   , tokenCreationDate      :: UTCTime
   , tokenExpires           :: Bool
   , tokenInheritsUserPerms :: Bool
@@ -609,7 +713,7 @@ tokenCreatePrefix :: String
 tokenCreatePrefix = "tokenCreate"
 
 data TokenCreate = TokenCreate {
-    tokenCreateEmail    :: Text
+    tokenCreateEmail    :: UserEmail
   , tokenCreatePassword :: Text
   , tokenCreateExpires  :: Bool
 } deriving (Show, Eq, Generic)
@@ -620,11 +724,15 @@ instance ToJSON TokenCreate where
 
 -------------------------------------------------------------------------------
 
+newtype SecurityRuleId = SecurityRuleId Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, ToHttpApiData)
+
+
 securityRulePrefix :: String
 securityRulePrefix = "securityRule"
 
 data SecurityRule = SecurityRule {
-    securityRuleId           :: Text
+    securityRuleId           :: SecurityRuleId
   , securityRuleAction       :: Text
   , securityRuleDirection    :: Direction
   , securityRuleProtocol     :: Protocol

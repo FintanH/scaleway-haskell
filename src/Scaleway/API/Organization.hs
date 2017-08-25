@@ -11,7 +11,7 @@ module Scaleway.API.Organization
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    XAuthToken)
+                                    XAuthToken, ParamPerPage, ParamPage,)
 import           Scaleway.Types    (Organizations)
 import           Servant.API       ((:<|>) (..), (:>), Get, JSON, Post, Put,
                                     QueryParam)
@@ -19,8 +19,8 @@ import           Servant.Client    (ClientM, client)
 
 type OrganizationAPI =
        "organizations" :> ScalewayAuthToken
-                       :> QueryParam "per_page" PerPage
-                       :> QueryParam "page" Page
+                       :> ParamPerPage
+                       :> ParamPage
                        :> Get '[JSON] Organizations
 
 organizationAPI :: Proxy OrganizationAPI

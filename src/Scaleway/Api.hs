@@ -9,11 +9,12 @@ module Scaleway.API
     , Page (..)
     , PerPage (..)
     , XAuthToken (..)
+    , ScalewayClient
     , runClient
     )where
 
 import           Data.Proxy                 (Proxy (..))
-import           Scaleway.API.Core          (Page, PerPage, XAuthToken,
+import           Scaleway.API.Core          (Page (..), PerPage (..), XAuthToken (..), ScalewayClient, 
                                              runClient)
 import           Scaleway.API.Image         as API
 import           Scaleway.API.Ip            as API

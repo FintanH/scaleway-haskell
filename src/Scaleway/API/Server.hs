@@ -17,29 +17,29 @@ module Scaleway.API.Server
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken,
+                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    Server, ServerCreate, ServerResult, Servers)
+                                    Server, ServerCreate, ServerResult, Servers, ServerId)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
 
-type CaptureServerId = Capture "serverId" Text
+type CaptureServerId = Capture "serverId" ServerId
 
 type ServerAPI =
   "servers" :> (
        ScalewayAuthToken
-    :> QueryParam "per_page" PerPage
-    :> QueryParam "page" Page
+    :> ParamPerPage
+    :> ParamPage
     :> Get '[JSON] Servers
 
   :<|> ScalewayAuthToken
     :> CaptureServerId
-    :> Get '[JSON] Server
+    :> Get '[JSON] ServerResult
 
   :<|> ScalewayAuthToken
     :> ReqBody '[JSON] ServerCreate
@@ -70,12 +70,12 @@ serverAPI :: Proxy ServerAPI
 serverAPI = Proxy
 
 getServers_ :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Servers
-getServer_ :: Maybe XAuthToken -> Text -> ClientM Server
+getServer_ :: Maybe XAuthToken -> ServerId -> ClientM ServerResult
 postServer_ :: Maybe XAuthToken -> ServerCreate -> ClientM ServerResult
-putServer_ :: Maybe XAuthToken -> Text -> Server -> ClientM ServerResult
-deleteServer_ :: Maybe XAuthToken -> Text -> ClientM ()
-getActions_ :: Maybe XAuthToken -> Text -> ClientM Actions
-postAction_ :: Maybe XAuthToken -> Text -> ActionRequest -> ClientM ActionResponse
+putServer_ :: Maybe XAuthToken -> ServerId -> Server -> ClientM ServerResult
+deleteServer_ :: Maybe XAuthToken -> ServerId -> ClientM ()
+getActions_ :: Maybe XAuthToken -> ServerId -> ClientM Actions
+postAction_ :: Maybe XAuthToken -> ServerId -> ActionRequest -> ClientM ActionResponse
 getServers_
   :<|> getServer_
   :<|> postServer_
@@ -87,20 +87,20 @@ getServers_
 getServersM :: Maybe PerPage -> Maybe Page -> ScalewayClient Servers
 getServersM = scalewayGetListRequest getServers_
 
-getServerM :: Text -> ScalewayClient Server
+getServerM :: ServerId -> ScalewayClient ServerResult
 getServerM = scalewayGetSingleRequest getServer_
 
 postServerM :: ServerCreate -> ScalewayClient ServerResult
 postServerM = scalewayPostRequest postServer_
 
-putServerM :: Text -> Server -> ScalewayClient ServerResult
+putServerM :: ServerId -> Server -> ScalewayClient ServerResult
 putServerM = scalewayPutRequest putServer_
 
-deleteServerM :: Text -> ScalewayClient ()
+deleteServerM :: ServerId -> ScalewayClient ()
 deleteServerM = scalewayDeleteRequest deleteServer_
 
-getActionsM :: Text -> ScalewayClient Actions
+getActionsM :: ServerId -> ScalewayClient Actions
 getActionsM = scalewayGetSingleRequest getActions_
 
-postActionM :: Text -> ActionRequest -> ScalewayClient ActionResponse
+postActionM :: ServerId -> ActionRequest -> ScalewayClient ActionResponse
 postActionM serverId = scalewayPostRequest (\auth -> postAction_ auth serverId)

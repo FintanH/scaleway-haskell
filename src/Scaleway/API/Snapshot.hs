@@ -15,24 +15,24 @@ module Scaleway.API.Snapshot
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken,
+                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
                                     Snapshot, SnapshotCreate, SnapshotResult,
-                                    Snapshots)
+                                    Snapshots, SnapshotId)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
 
-type CaptureSnapshotId = Capture "snapshotId" Text
+type CaptureSnapshotId = Capture "snapshotId" SnapshotId
 
 type SnapshotAPI = "snapshots" :> (
        ScalewayAuthToken
-    :> QueryParam "per_page" PerPage
-    :> QueryParam "page" Page
+    :> ParamPerPage
+    :> ParamPage
     :> Get '[JSON] Snapshots
 
   :<|> ScalewayAuthToken
@@ -57,10 +57,10 @@ snapshotAPI :: Proxy SnapshotAPI
 snapshotAPI = Proxy
 
 getSnapshots_ :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Snapshots
-getSnapshot_ :: Maybe XAuthToken -> Text -> ClientM Snapshot
+getSnapshot_ :: Maybe XAuthToken -> SnapshotId -> ClientM Snapshot
 postSnapshot_ :: Maybe XAuthToken -> SnapshotCreate -> ClientM SnapshotResult
-putSnapshot_ :: Maybe XAuthToken -> Text -> Snapshot -> ClientM Snapshot
-deleteSnapshot_ :: Maybe XAuthToken -> Text -> ClientM ()
+putSnapshot_ :: Maybe XAuthToken -> SnapshotId -> Snapshot -> ClientM Snapshot
+deleteSnapshot_ :: Maybe XAuthToken -> SnapshotId -> ClientM ()
 getSnapshots_
   :<|> getSnapshot_
   :<|> postSnapshot_
@@ -70,14 +70,14 @@ getSnapshots_
 getSnapshotsM :: Maybe PerPage -> Maybe Page -> ScalewayClient Snapshots
 getSnapshotsM = scalewayGetListRequest getSnapshots_
 
-getSnapshotM :: Text -> ScalewayClient Snapshot
+getSnapshotM :: SnapshotId -> ScalewayClient Snapshot
 getSnapshotM = scalewayGetSingleRequest getSnapshot_
 
 postSnapshotM :: SnapshotCreate -> ScalewayClient SnapshotResult
 postSnapshotM = scalewayPostRequest postSnapshot_
 
-putSnapshotM :: Text -> Snapshot -> ScalewayClient Snapshot
+putSnapshotM :: SnapshotId -> Snapshot -> ScalewayClient Snapshot
 putSnapshotM = scalewayPutRequest putSnapshot_
 
-deleteSnapshotM :: Text -> ScalewayClient ()
+deleteSnapshotM :: SnapshotId -> ScalewayClient ()
 deleteSnapshotM = scalewayDeleteRequest deleteSnapshot_

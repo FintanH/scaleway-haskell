@@ -15,23 +15,23 @@ module Scaleway.API.Image
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken,
+                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    Image, ImageCreate, ImageResult, Images)
+                                    Image, ImageCreate, ImageResult, Images, ImageId)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
 
-type CaptureImageId = Capture "imageId" Text
+type CaptureImageId = Capture "imageId" ImageId
 
 type ImageAPI = "images" :> (
        ScalewayAuthToken
-    :> QueryParam "per_page" PerPage
-    :> QueryParam "page" Page
+    :> ParamPerPage
+    :> ParamPage
     :> Get '[JSON] Images
 
   :<|> ScalewayAuthToken
@@ -56,10 +56,10 @@ imageAPI :: Proxy ImageAPI
 imageAPI = Proxy
 
 getImages_ :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Images
-getImage_ :: Maybe XAuthToken -> Text -> ClientM Image
+getImage_ :: Maybe XAuthToken -> ImageId -> ClientM Image
 postImage_ :: Maybe XAuthToken -> ImageCreate -> ClientM ImageResult
-putImage_ :: Maybe XAuthToken -> Text -> Image -> ClientM ImageResult
-deleteImage_ :: Maybe XAuthToken -> Text -> ClientM ()
+putImage_ :: Maybe XAuthToken -> ImageId -> Image -> ClientM ImageResult
+deleteImage_ :: Maybe XAuthToken -> ImageId -> ClientM ()
 getImages_
   :<|> getImage_
   :<|> postImage_
@@ -69,14 +69,14 @@ getImages_
 getImagesM :: Maybe PerPage -> Maybe Page -> ScalewayClient Images
 getImagesM = scalewayGetListRequest getImages_
 
-getImageM :: Text -> ScalewayClient Image
+getImageM :: ImageId -> ScalewayClient Image
 getImageM = scalewayGetSingleRequest getImage_
 
 postImageM :: ImageCreate -> ScalewayClient ImageResult
 postImageM = scalewayPostRequest postImage_
 
-putImageM :: Text -> Image -> ScalewayClient ImageResult
+putImageM :: ImageId -> Image -> ScalewayClient ImageResult
 putImageM = scalewayPutRequest putImage_
 
-deleteImageM :: Text -> ScalewayClient ()
+deleteImageM :: ImageId -> ScalewayClient ()
 deleteImageM = scalewayDeleteRequest deleteImage_

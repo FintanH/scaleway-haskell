@@ -8,6 +8,8 @@ module Scaleway.API.Core
     , ScalewayClient
     , PerPage
     , Page
+    , ParamPage
+    , ParamPerPage
     , scalewayGetListRequest
     , scalewayGetSingleRequest
     , scalewayPostRequest
@@ -39,6 +41,9 @@ newtype Page = Page Int
 
 type ScalewayAuthToken = Header "X-Auth-Token" XAuthToken
 
+type ParamPerPage = QueryParam "per_page" PerPage
+
+type ParamPage = QueryParam "page" Page
 
 type ScalewayClient a = ReaderT XAuthToken ClientM a
 
@@ -61,8 +66,8 @@ scalewayGetListRequest r perPage page = do
   lift $ r (Just token) perPage page
 
 scalewayGetSingleRequest :: FromJSON a
-                         => (Maybe XAuthToken -> Text -> ClientM a)
-                         -> Text -> ScalewayClient a
+                         => (Maybe XAuthToken -> id -> ClientM a)
+                         -> id -> ScalewayClient a
 scalewayGetSingleRequest r resourceId = do
   token <- ask
   lift $ r (Just token) resourceId
@@ -75,14 +80,14 @@ scalewayPostRequest r postData = do
   lift $ r (Just token) postData
 
 scalewayPutRequest :: (ToJSON a, FromJSON b)
-                   => (Maybe XAuthToken -> Text -> a -> ClientM b)
-                   -> Text -> a -> ScalewayClient b
+                   => (Maybe XAuthToken -> id -> a -> ClientM b)
+                   -> id -> a -> ScalewayClient b
 scalewayPutRequest r resourceId body = do
   token <- ask
   lift $ r (Just token) resourceId body
 
-scalewayDeleteRequest :: (Maybe XAuthToken -> Text -> ClientM ())
-                      -> Text -> ScalewayClient ()
+scalewayDeleteRequest :: (Maybe XAuthToken -> id -> ClientM ())
+                      -> id -> ScalewayClient ()
 scalewayDeleteRequest r resourceId = do
   token <- ask
   lift $ r (Just token) resourceId

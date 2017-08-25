@@ -15,24 +15,24 @@ module Scaleway.API.Ip
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken,
+                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions, Ip,
-                                    IpCreate, IpResult, Ips)
+                                    IpCreate, IpResult, Ips, IpId)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
 
-type CaptureIpId = Capture "ipId" Text
+type CaptureIpId = Capture "ipId" IpId
 
 type IpAPI =
   "ips" :> (
        ScalewayAuthToken
-    :> QueryParam "per_page" PerPage
-    :> QueryParam "page" Page
+    :> ParamPerPage
+    :> ParamPage
     :> Get '[JSON] Ips
 
   :<|> ScalewayAuthToken
@@ -45,7 +45,8 @@ type IpAPI =
 
   :<|> ScalewayAuthToken
     :> CaptureIpId
-    :> Put '[JSON] Ip
+    :> ReqBody '[JSON] Ip
+    :> Put '[JSON] IpResult
 
   :<|> ScalewayAuthToken
     :> CaptureIpId
@@ -56,10 +57,10 @@ ipAPI :: Proxy IpAPI
 ipAPI = Proxy
 
 getIps_ :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Ips
-getIp_ :: Maybe XAuthToken -> Text -> ClientM Ip
+getIp_ :: Maybe XAuthToken -> IpId -> ClientM Ip
 postIp_ :: Maybe XAuthToken -> IpCreate -> ClientM IpResult
-putIp_ :: Maybe XAuthToken -> Text -> ClientM Ip
-deleteIp_ :: Maybe XAuthToken -> Text -> ClientM ()
+putIp_ :: Maybe XAuthToken -> IpId -> Ip -> ClientM IpResult
+deleteIp_ :: Maybe XAuthToken -> IpId -> ClientM ()
 getIps_
   :<|> getIp_
   :<|> postIp_
@@ -69,14 +70,14 @@ getIps_
 getIpsM :: Maybe PerPage -> Maybe Page -> ScalewayClient Ips
 getIpsM = scalewayGetListRequest getIps_
 
-getIpM :: Text -> ScalewayClient Ip
+getIpM :: IpId -> ScalewayClient Ip
 getIpM = scalewayGetSingleRequest getIp_
 
 postIpM :: IpCreate -> ScalewayClient IpResult
 postIpM = scalewayPostRequest postIp_
 
-putIpM :: Text -> ScalewayClient Ip
+putIpM :: IpId -> Ip -> ScalewayClient IpResult
 putIpM = scalewayPutRequest putIp_
 
-deleteIpM :: Text -> ScalewayClient ()
+deleteIpM :: IpId -> ScalewayClient ()
 deleteIpM = scalewayDeleteRequest deleteIp_

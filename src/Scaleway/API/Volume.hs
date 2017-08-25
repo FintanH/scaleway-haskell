@@ -15,24 +15,24 @@ module Scaleway.API.Volume
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken,
+                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    Volume, VolumeCreate, VolumeResult, Volumes)
+                                    Volume, VolumeCreate, VolumeResult, Volumes, VolumeId)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
 
-type CaptureVolumeId = Capture "volumeId" Text
+type CaptureVolumeId = Capture "volumeId" VolumeId
 
 type VolumeAPI =
   "volumes" :> (
        ScalewayAuthToken
-    :> QueryParam "per_page" PerPage
-    :> QueryParam "page" Page
+    :> ParamPerPage
+    :> ParamPage
     :> Get '[JSON] Volumes
 
   :<|> ScalewayAuthToken
@@ -57,10 +57,10 @@ volumeAPI :: Proxy VolumeAPI
 volumeAPI = Proxy
 
 getVolumes_ :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Volumes
-getVolume_ :: Maybe XAuthToken -> Text -> ClientM Volume
+getVolume_ :: Maybe XAuthToken -> VolumeId -> ClientM Volume
 postVolume_ :: Maybe XAuthToken -> VolumeCreate -> ClientM VolumeResult
-putVolume_ :: Maybe XAuthToken -> Text -> Volume -> ClientM Volume
-deleteVolume_ :: Maybe XAuthToken -> Text -> ClientM ()
+putVolume_ :: Maybe XAuthToken -> VolumeId -> Volume -> ClientM Volume
+deleteVolume_ :: Maybe XAuthToken -> VolumeId -> ClientM ()
 getVolumes_
   :<|> getVolume_
   :<|> postVolume_
@@ -70,14 +70,14 @@ getVolumes_
 getVolumesM :: Maybe PerPage -> Maybe Page -> ScalewayClient Volumes
 getVolumesM = scalewayGetListRequest getVolumes_
 
-getVolumeM :: Text -> ScalewayClient Volume
+getVolumeM :: VolumeId -> ScalewayClient Volume
 getVolumeM = scalewayGetSingleRequest getVolume_
 
 postVolumeM :: VolumeCreate -> ScalewayClient VolumeResult
 postVolumeM = scalewayPostRequest postVolume_
 
-putVolumeM :: Text -> Volume -> ScalewayClient Volume
+putVolumeM :: VolumeId -> Volume -> ScalewayClient Volume
 putVolumeM = scalewayPutRequest putVolume_
 
-deleteVolumeM :: Text -> ScalewayClient ()
+deleteVolumeM :: VolumeId -> ScalewayClient ()
 deleteVolumeM = scalewayDeleteRequest deleteVolume_
