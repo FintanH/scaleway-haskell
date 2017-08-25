@@ -61,11 +61,11 @@ scalewayGetListRequest r perPage page = do
   lift $ r (Just token) perPage page
 
 scalewayGetSingleRequest :: FromJSON a
-                         => (Maybe XAuthToken -> Text -> Maybe PerPage -> Maybe Page -> ClientM a)
-                         -> Text -> Maybe PerPage -> Maybe Page -> ScalewayClient a
-scalewayGetSingleRequest r resourceId perPage page = do
+                         => (Maybe XAuthToken -> Text -> ClientM a)
+                         -> Text -> ScalewayClient a
+scalewayGetSingleRequest r resourceId = do
   token <- ask
-  lift $ r (Just token) resourceId perPage page
+  lift $ r (Just token) resourceId
 
 scalewayPostRequest :: (ToJSON a, FromJSON b)
                     => (Maybe XAuthToken -> a -> ClientM b)

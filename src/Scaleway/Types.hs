@@ -145,7 +145,7 @@ data CommercialType = VC1S
                     | C2M
                     | C2L
                     | ARM64_128GB
-                    deriving (Show, Eq, Generic)
+                    deriving (Show, Eq)
 
 instance FromJSON CommercialType where
   parseJSON = withText "commercial_type" $ \t ->
@@ -166,6 +166,61 @@ instance ToJSON CommercialType where
     ct          -> String . pack . show $ ct
 
 -------------------------------------------------------------------------------
+
+
+data Action = PowerOn
+            | PowerOff
+            | Reboot
+            | Terminate
+            deriving (Eq, Show)
+
+instance FromJSON Action where
+  parseJSON = withText "action" $ \t ->
+    case t of
+      "poweroff"  -> pure PowerOff
+      "poweron"   -> pure PowerOn
+      "reboot"    -> pure Reboot
+      "terminate" -> pure Terminate
+      _           -> fail $ "Unknown action: " ++ (unpack t)
+
+instance ToJSON Action where
+  toJSON = String . pack . map toLower . show
+
+
+newtype Actions = Actions { actions :: [Action] }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON Actions
+
+
+newtype ActionRequest = ActionRequest { action :: Action }
+  deriving (Show, Eq, Generic)
+
+instance ToJSON ActionRequest
+
+taskPrefix :: String
+taskPrefix = "task"
+
+data Task = Task {
+    taskDescription :: Text
+  , taskHrefFrom    :: Text
+  , taskId          :: Text
+  , taskProgress    :: Text
+  , taskStatus      :: Text
+} deriving (Show, Eq, Generic)
+
+instance FromJSON Task where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length taskPrefix) }
+
+
+data ActionResponse = ActionResponse { task :: Task }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON ActionResponse
+
+
+-------------------------------------------------------------------------------
+
 
 organizationPrefix :: String
 organizationPrefix = "organization"
