@@ -1,8 +1,6 @@
-name:                Scaleway-Haskell
+name:                scaleway-haskell
 version:             0.1.0.0
--- synopsis:
--- description:
-homepage:            https://github.com/githubuser/Scaleway-Haskell#readme
+homepage:            https://github.com/FintanH/scaleway-haskell#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Fintan Halpenny
@@ -43,4 +41,4 @@ library
 
 source-repository head
   type:     git
-  location: https://github.com/FintanH/Scaleway-Haskell
+  location: https://github.com/FintanH/scaleway-haskell
