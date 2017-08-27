@@ -14,14 +14,16 @@ module Scaleway.API.Volume
 
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
-import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
+import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
+                                    ScalewayAuthToken, ScalewayClient,
+                                    ScalewayComputeClient (..), XAuthToken,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    Volume, VolumeCreate, VolumeResult, Volumes, VolumeId)
+                                    Volume, VolumeCreate, VolumeId,
+                                    VolumeResult, Volumes)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
@@ -67,17 +69,17 @@ getVolumes_
   :<|> putVolume_
   :<|> deleteVolume_ = client volumeAPI
 
-getVolumesM :: Maybe PerPage -> Maybe Page -> ScalewayClient Volumes
-getVolumesM = scalewayGetListRequest getVolumes_
+getVolumesM :: Maybe PerPage -> Maybe Page -> ScalewayComputeClient Volumes
+getVolumesM perPage = ScalewayCompute . scalewayGetListRequest getVolumes_ perPage
 
-getVolumeM :: VolumeId -> ScalewayClient Volume
-getVolumeM = scalewayGetSingleRequest getVolume_
+getVolumeM :: VolumeId -> ScalewayComputeClient Volume
+getVolumeM = ScalewayCompute . scalewayGetSingleRequest getVolume_
 
-postVolumeM :: VolumeCreate -> ScalewayClient VolumeResult
-postVolumeM = scalewayPostRequest postVolume_
+postVolumeM :: VolumeCreate -> ScalewayComputeClient VolumeResult
+postVolumeM = ScalewayCompute . scalewayPostRequest postVolume_
 
-putVolumeM :: VolumeId -> Volume -> ScalewayClient Volume
-putVolumeM = scalewayPutRequest putVolume_
+putVolumeM :: VolumeId -> Volume -> ScalewayComputeClient Volume
+putVolumeM i = ScalewayCompute . scalewayPutRequest putVolume_ i
 
-deleteVolumeM :: VolumeId -> ScalewayClient ()
-deleteVolumeM = scalewayDeleteRequest deleteVolume_
+deleteVolumeM :: VolumeId -> ScalewayComputeClient ()
+deleteVolumeM = ScalewayCompute . scalewayDeleteRequest deleteVolume_

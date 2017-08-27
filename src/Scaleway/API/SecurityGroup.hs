@@ -14,17 +14,19 @@ module Scaleway.API.SecurityGroup
 
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
-import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
+import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
+                                    ScalewayAuthToken, ScalewayClient,
+                                    ScalewayComputeClient (..), XAuthToken,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
                                     SecurityGroup, SecurityGroupCreate,
-                                    SecurityGroupResult, SecurityGroups,
-                                    SecurityRule, SecurityRuleCreate,
-                                    SecurityRuleResult, SecurityRules, SecurityRuleId, SecurityGroupId)
+                                    SecurityGroupId, SecurityGroupResult,
+                                    SecurityGroups, SecurityRule,
+                                    SecurityRuleCreate, SecurityRuleId,
+                                    SecurityRuleResult, SecurityRules)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
@@ -108,32 +110,32 @@ getSecurityGroups_
   :<|> putSecurityRule_
   :<|> deleteSecurityRule_ = client securityGroupAPI
 
-getSecurityGroupsM :: Maybe PerPage -> Maybe Page -> ScalewayClient SecurityGroups
-getSecurityGroupsM = scalewayGetListRequest getSecurityGroups_
+getSecurityGroupsM :: Maybe PerPage -> Maybe Page -> ScalewayComputeClient SecurityGroups
+getSecurityGroupsM perPage = ScalewayCompute . scalewayGetListRequest getSecurityGroups_ perPage
 
-getSecurityGroupM :: SecurityGroupId -> ScalewayClient SecurityGroup
-getSecurityGroupM = scalewayGetSingleRequest getSecurityGroup_
+getSecurityGroupM :: SecurityGroupId -> ScalewayComputeClient SecurityGroup
+getSecurityGroupM = ScalewayCompute . scalewayGetSingleRequest getSecurityGroup_
 
-postSecurityGroupM :: SecurityGroupCreate -> ScalewayClient SecurityGroupResult
-postSecurityGroupM = scalewayPostRequest postSecurityGroup_
+postSecurityGroupM :: SecurityGroupCreate -> ScalewayComputeClient SecurityGroupResult
+postSecurityGroupM = ScalewayCompute . scalewayPostRequest postSecurityGroup_
 
-putSecurityGroupM :: SecurityGroupId -> SecurityGroup -> ScalewayClient SecurityGroupResult
-putSecurityGroupM = scalewayPutRequest putSecurityGroup_
+putSecurityGroupM :: SecurityGroupId -> SecurityGroup -> ScalewayComputeClient SecurityGroupResult
+putSecurityGroupM i = ScalewayCompute . scalewayPutRequest putSecurityGroup_ i
 
-deleteSecurityGroupM :: SecurityGroupId -> ScalewayClient ()
-deleteSecurityGroupM = scalewayDeleteRequest deleteSecurityGroup_
+deleteSecurityGroupM :: SecurityGroupId -> ScalewayComputeClient ()
+deleteSecurityGroupM = ScalewayCompute . scalewayDeleteRequest deleteSecurityGroup_
 
-getSecurityRulesM :: Maybe PerPage -> Maybe Page -> ScalewayClient SecurityRules
-getSecurityRulesM = scalewayGetListRequest getSecurityRules_
+getSecurityRulesM :: Maybe PerPage -> Maybe Page -> ScalewayComputeClient SecurityRules
+getSecurityRulesM perPage = ScalewayCompute . scalewayGetListRequest getSecurityRules_ perPage
 
-getSecurityRuleM :: SecurityRuleId -> ScalewayClient SecurityRule
-getSecurityRuleM = scalewayGetSingleRequest getSecurityRule_
+getSecurityRuleM :: SecurityRuleId -> ScalewayComputeClient SecurityRule
+getSecurityRuleM = ScalewayCompute . scalewayGetSingleRequest getSecurityRule_
 
-postSecurityRuleM :: SecurityRuleCreate -> ScalewayClient SecurityRuleResult
-postSecurityRuleM = scalewayPostRequest postSecurityRule_
+postSecurityRuleM :: SecurityRuleCreate -> ScalewayComputeClient SecurityRuleResult
+postSecurityRuleM = ScalewayCompute . scalewayPostRequest postSecurityRule_
 
-putSecurityRuleM :: SecurityRuleId -> SecurityRule -> ScalewayClient SecurityRuleResult
-putSecurityRuleM = scalewayPutRequest putSecurityRule_
+putSecurityRuleM :: SecurityRuleId -> SecurityRule -> ScalewayComputeClient SecurityRuleResult
+putSecurityRuleM i = ScalewayCompute . scalewayPutRequest putSecurityRule_ i
 
-deleteSecurityRuleM :: SecurityRuleId -> ScalewayClient ()
-deleteSecurityRuleM = scalewayDeleteRequest deleteSecurityRule_
+deleteSecurityRuleM :: SecurityRuleId -> ScalewayComputeClient ()
+deleteSecurityRuleM = ScalewayCompute . scalewayDeleteRequest deleteSecurityRule_

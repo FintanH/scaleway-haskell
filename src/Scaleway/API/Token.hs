@@ -14,14 +14,16 @@ module Scaleway.API.Token
 
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
-import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
-                                    scalewayDeleteRequest,
+import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
+                                    ScalewayAccountClient (..),
+                                    ScalewayAuthToken, ScalewayClient,
+                                    XAuthToken, scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    Token, TokenCreate, TokenResult, Tokens, TokenId)
+                                    Token, TokenCreate, TokenId, TokenResult,
+                                    Tokens)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
@@ -66,17 +68,17 @@ getTokens_
   :<|> putToken_
   :<|> deleteToken_ = client tokenAPI
 
-getTokensM :: Maybe PerPage -> Maybe Page -> ScalewayClient Tokens
-getTokensM = scalewayGetListRequest getTokens_
+getTokensM :: Maybe PerPage -> Maybe Page -> ScalewayAccountClient Tokens
+getTokensM perPage = ScalewayAccount . scalewayGetListRequest getTokens_ perPage
 
-getTokenM :: TokenId -> ScalewayClient Token
-getTokenM = scalewayGetSingleRequest getToken_
+getTokenM :: TokenId -> ScalewayAccountClient Token
+getTokenM = ScalewayAccount . scalewayGetSingleRequest getToken_
 
-postTokenM :: TokenCreate -> ScalewayClient TokenResult
-postTokenM = scalewayPostRequest postToken_
+postTokenM :: TokenCreate -> ScalewayAccountClient TokenResult
+postTokenM = ScalewayAccount . scalewayPostRequest postToken_
 
-putTokenM :: TokenId -> Token -> ScalewayClient TokenResult
-putTokenM = scalewayPutRequest putToken_
+putTokenM :: TokenId -> Token -> ScalewayAccountClient TokenResult
+putTokenM i = ScalewayAccount . scalewayPutRequest putToken_ i
 
-deleteTokenM :: TokenId -> ScalewayClient ()
-deleteTokenM = scalewayDeleteRequest deleteToken_
+deleteTokenM :: TokenId -> ScalewayAccountClient ()
+deleteTokenM = ScalewayAccount . scalewayDeleteRequest deleteToken_

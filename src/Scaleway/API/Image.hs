@@ -14,14 +14,16 @@ module Scaleway.API.Image
 
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
-import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
+import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
+                                    ScalewayAuthToken, ScalewayClient,
+                                    ScalewayComputeClient (..), XAuthToken,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    Image, ImageCreate, ImageResult, Images, ImageId)
+                                    Image, ImageCreate, ImageId, ImageResult,
+                                    Images)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
@@ -66,17 +68,17 @@ getImages_
   :<|> putImage_
   :<|> deleteImage_ = client imageAPI
 
-getImagesM :: Maybe PerPage -> Maybe Page -> ScalewayClient Images
-getImagesM = scalewayGetListRequest getImages_
+getImagesM :: Maybe PerPage -> Maybe Page -> ScalewayComputeClient Images
+getImagesM perPage = ScalewayCompute . scalewayGetListRequest getImages_ perPage
 
-getImageM :: ImageId -> ScalewayClient Image
-getImageM = scalewayGetSingleRequest getImage_
+getImageM :: ImageId -> ScalewayComputeClient Image
+getImageM = ScalewayCompute . scalewayGetSingleRequest getImage_
 
-postImageM :: ImageCreate -> ScalewayClient ImageResult
-postImageM = scalewayPostRequest postImage_
+postImageM :: ImageCreate -> ScalewayComputeClient ImageResult
+postImageM = ScalewayCompute . scalewayPostRequest postImage_
 
-putImageM :: ImageId -> Image -> ScalewayClient ImageResult
-putImageM = scalewayPutRequest putImage_
+putImageM :: ImageId -> Image -> ScalewayComputeClient ImageResult
+putImageM i = ScalewayCompute . scalewayPutRequest putImage_ i
 
-deleteImageM :: ImageId -> ScalewayClient ()
-deleteImageM = scalewayDeleteRequest deleteImage_
+deleteImageM :: ImageId -> ScalewayComputeClient ()
+deleteImageM = ScalewayCompute . scalewayDeleteRequest deleteImage_

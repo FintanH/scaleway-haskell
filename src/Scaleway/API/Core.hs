@@ -1,11 +1,14 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 
 module Scaleway.API.Core
     ( XAuthToken (..)
     , ScalewayAuthToken
     , ScalewayClient
+    , ScalewayAccountClient (..)
+    , ScalewayComputeClient (..)
     , PerPage
     , Page
     , ParamPage
@@ -15,7 +18,8 @@ module Scaleway.API.Core
     , scalewayPostRequest
     , scalewayPutRequest
     , scalewayDeleteRequest
-    , runClient
+    , runAccountClient
+    , runComputeClient
     ) where
 
 import           Control.Monad.Reader    (ReaderT, ask, runReaderT)
@@ -45,49 +49,68 @@ type ParamPerPage = QueryParam "per_page" PerPage
 
 type ParamPage = QueryParam "page" Page
 
-type ScalewayClient a = ReaderT XAuthToken ClientM a
+type ScalewayClient resourceType a = ReaderT XAuthToken ClientM a
 
-clientEnv :: Region -> IO ClientEnv
-clientEnv region = do
-  let host = "cp-" ++ show region ++ ".scaleway.com"
+data Account
+data Compute
+
+newtype ScalewayAccountClient a = ScalewayAccount (ScalewayClient Account a)
+newtype ScalewayComputeClient a = ScalewayCompute (ScalewayClient Compute a)
+
+newtype HostPrefix = HostPrefix String
+
+clientEnv :: HostPrefix -> IO ClientEnv
+clientEnv (HostPrefix prefix) = do
+  let host = prefix ++ ".scaleway.com"
   manager <- newTlsManager
   pure $ ClientEnv manager (BaseUrl Http host 80 "")
 
-runClient :: ScalewayClient a -> Region -> XAuthToken -> IO (Either ServantError a)
-runClient c r token = do
-  env <- clientEnv r
+computeEnv :: Region -> IO ClientEnv
+computeEnv region = clientEnv (HostPrefix $ "cp-" ++ show region)
+
+accountEnv :: IO ClientEnv
+accountEnv = clientEnv (HostPrefix "account")
+
+runAccountClient :: ScalewayAccountClient a -> XAuthToken -> IO (Either ServantError a)
+runAccountClient (ScalewayAccount c) token = do
+  env <- accountEnv
+  runClientM (runReaderT c token) env
+
+runComputeClient :: ScalewayComputeClient a -> Region -> XAuthToken -> IO (Either ServantError a)
+runComputeClient (ScalewayCompute c) r token = do
+  env <- computeEnv r
   runClientM (runReaderT c token) env
 
 scalewayGetListRequest :: FromJSON a
                        => (Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM a)
-                       -> Maybe PerPage -> Maybe Page -> ScalewayClient a
+                       -> Maybe PerPage -> Maybe Page -> ScalewayClient resourceType a
 scalewayGetListRequest r perPage page = do
   token <- ask
   lift $ r (Just token) perPage page
 
 scalewayGetSingleRequest :: FromJSON a
                          => (Maybe XAuthToken -> id -> ClientM a)
-                         -> id -> ScalewayClient a
+                         -> id -> ScalewayClient resourceType a
 scalewayGetSingleRequest r resourceId = do
   token <- ask
   lift $ r (Just token) resourceId
 
 scalewayPostRequest :: (ToJSON a, FromJSON b)
                     => (Maybe XAuthToken -> a -> ClientM b)
-                    -> a -> ScalewayClient b
+                    -> a -> ScalewayClient resourceType b
 scalewayPostRequest r postData = do
   token <- ask
   lift $ r (Just token) postData
 
 scalewayPutRequest :: (ToJSON a, FromJSON b)
                    => (Maybe XAuthToken -> id -> a -> ClientM b)
-                   -> id -> a -> ScalewayClient b
+                   -> id -> a -> ScalewayClient resourceType b
 scalewayPutRequest r resourceId body = do
   token <- ask
   lift $ r (Just token) resourceId body
 
 scalewayDeleteRequest :: (Maybe XAuthToken -> id -> ClientM ())
-                      -> id -> ScalewayClient ()
+                      -> id -> ScalewayClient resourceType ()
 scalewayDeleteRequest r resourceId = do
   token <- ask
   lift $ r (Just token) resourceId

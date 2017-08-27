@@ -14,15 +14,16 @@ module Scaleway.API.Snapshot
 
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
-import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
+import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
+                                    ScalewayAuthToken, ScalewayClient,
+                                    ScalewayComputeClient (..), XAuthToken,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    Snapshot, SnapshotCreate, SnapshotResult,
-                                    Snapshots, SnapshotId)
+                                    Snapshot, SnapshotCreate, SnapshotId,
+                                    SnapshotResult, Snapshots)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
@@ -67,17 +68,17 @@ getSnapshots_
   :<|> putSnapshot_
   :<|> deleteSnapshot_ = client snapshotAPI
 
-getSnapshotsM :: Maybe PerPage -> Maybe Page -> ScalewayClient Snapshots
-getSnapshotsM = scalewayGetListRequest getSnapshots_
+getSnapshotsM :: Maybe PerPage -> Maybe Page -> ScalewayComputeClient Snapshots
+getSnapshotsM perPage = ScalewayCompute . scalewayGetListRequest getSnapshots_ perPage
 
-getSnapshotM :: SnapshotId -> ScalewayClient Snapshot
-getSnapshotM = scalewayGetSingleRequest getSnapshot_
+getSnapshotM :: SnapshotId -> ScalewayComputeClient Snapshot
+getSnapshotM = ScalewayCompute . scalewayGetSingleRequest getSnapshot_
 
-postSnapshotM :: SnapshotCreate -> ScalewayClient SnapshotResult
-postSnapshotM = scalewayPostRequest postSnapshot_
+postSnapshotM :: SnapshotCreate -> ScalewayComputeClient SnapshotResult
+postSnapshotM = ScalewayCompute . scalewayPostRequest postSnapshot_
 
-putSnapshotM :: SnapshotId -> Snapshot -> ScalewayClient Snapshot
-putSnapshotM = scalewayPutRequest putSnapshot_
+putSnapshotM :: SnapshotId -> Snapshot -> ScalewayComputeClient Snapshot
+putSnapshotM i = ScalewayCompute . scalewayPutRequest putSnapshot_ i
 
-deleteSnapshotM :: SnapshotId -> ScalewayClient ()
-deleteSnapshotM = scalewayDeleteRequest deleteSnapshot_
+deleteSnapshotM :: SnapshotId -> ScalewayComputeClient ()
+deleteSnapshotM = ScalewayCompute . scalewayDeleteRequest deleteSnapshot_

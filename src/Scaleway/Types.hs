@@ -282,6 +282,21 @@ newtype Organizations = Organizations { organizations :: [Organization] }
 instance FromJSON Organizations
 
 
+organizationRefPrefix :: String
+organizationRefPrefix = "organizationRef"
+
+data OrganizationRef = OrganizationRef {
+    organizationRefId :: OrganizationId
+  , organizationRefName :: OrganizationName
+} deriving (Show, Eq, Generic)
+
+instance FromJSON OrganizationRef where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length organizationRefPrefix) }
+
+instance ToJSON OrganizationRef where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length organizationRefPrefix) }
+
+
 -------------------------------------------------------------------------------
 
 newtype ImageId = ImageId Text
@@ -367,29 +382,48 @@ data User = User {
   , userFirstname     :: UserFirstName
   , userLastname      :: UserLastName
   , userFullname      :: UserFullName
-  , userOrganizations :: Maybe [OrganizationId]
+  , userOrganizations :: Maybe [OrganizationRef]
   , userRoles         :: Maybe [Role]
-  , userSshPublicKeys :: Maybe [Text]
+  , userSshPublicKeys :: Maybe [SshPublicKey]
 } deriving (Show, Eq, Generic)
 
 instance FromJSON User where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length userPrefix) }
 
 
+sshPublicKeyPrefix :: String
+sshPublicKeyPrefix = "sshPublicKey"
+
+data SshPublicKey = SshPublicKey {
+    sshPublicKeyKey         :: Text
+  , sshPublicKeyFingerprint :: Text
+} deriving (Show, Eq, Generic)
+
+instance FromJSON SshPublicKey where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length sshPublicKeyPrefix) }
+
 -------------------------------------------------------------------------------
 
 
 data RoleType = Manager
+              | Admin
   deriving (Show, Eq, Generic)
 
-instance FromJSON RoleType
-instance ToJSON RoleType
+instance FromJSON RoleType where
+  parseJSON = withText "role type" $ \t ->
+    case t of
+      "manager" -> pure Manager
+      "admin"   -> pure Admin
+      _         -> fail $ "Unknown role type: " ++ show t
+
+instance ToJSON RoleType where
+  toJSON = String . pack . map toLower . show
 
 rolePrefix :: String
 rolePrefix = "role"
 
 data Role = Role {
-    roleOrganization :: Maybe OrganizationId
+    roleOrganization :: Maybe OrganizationRef
   , roleType         :: Maybe RoleType
 } deriving (Show, Eq, Generic)
 

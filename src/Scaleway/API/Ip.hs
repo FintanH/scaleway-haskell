@@ -14,14 +14,15 @@ module Scaleway.API.Ip
 
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
-import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
+import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
+                                    ScalewayAuthToken, ScalewayClient,
+                                    ScalewayComputeClient (..), XAuthToken,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions, Ip,
-                                    IpCreate, IpResult, Ips, IpId)
+                                    IpCreate, IpId, IpResult, Ips)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
@@ -67,17 +68,17 @@ getIps_
   :<|> putIp_
   :<|> deleteIp_ = client ipAPI
 
-getIpsM :: Maybe PerPage -> Maybe Page -> ScalewayClient Ips
-getIpsM = scalewayGetListRequest getIps_
+getIpsM :: Maybe PerPage -> Maybe Page -> ScalewayComputeClient Ips
+getIpsM perPage = ScalewayCompute . scalewayGetListRequest getIps_ perPage
 
-getIpM :: IpId -> ScalewayClient Ip
-getIpM = scalewayGetSingleRequest getIp_
+getIpM :: IpId -> ScalewayComputeClient Ip
+getIpM = ScalewayCompute . scalewayGetSingleRequest getIp_
 
-postIpM :: IpCreate -> ScalewayClient IpResult
-postIpM = scalewayPostRequest postIp_
+postIpM :: IpCreate -> ScalewayComputeClient IpResult
+postIpM = ScalewayCompute . scalewayPostRequest postIp_
 
-putIpM :: IpId -> Ip -> ScalewayClient IpResult
-putIpM = scalewayPutRequest putIp_
+putIpM :: IpId -> Ip -> ScalewayComputeClient IpResult
+putIpM i = ScalewayCompute . scalewayPutRequest putIp_ i
 
-deleteIpM :: IpId -> ScalewayClient ()
-deleteIpM = scalewayDeleteRequest deleteIp_
+deleteIpM :: IpId -> ScalewayComputeClient ()
+deleteIpM = ScalewayCompute . scalewayDeleteRequest deleteIp_

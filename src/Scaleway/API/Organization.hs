@@ -10,8 +10,10 @@ module Scaleway.API.Organization
 
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
-import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    XAuthToken, ParamPerPage, ParamPage,)
+import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
+                                    ScalewayAccountClient (..),
+                                    ScalewayAuthToken, XAuthToken,
+                                    scalewayGetListRequest)
 import           Scaleway.Types    (Organizations)
 import           Servant.API       ((:<|>) (..), (:>), Get, JSON, Post, Put,
                                     QueryParam)
@@ -26,5 +28,8 @@ type OrganizationAPI =
 organizationAPI :: Proxy OrganizationAPI
 organizationAPI = Proxy
 
-getOrganizationsM :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Organizations
-getOrganizationsM = client organizationAPI
+getOrganizations_ :: Maybe XAuthToken -> Maybe PerPage -> Maybe Page -> ClientM Organizations
+getOrganizations_ = client organizationAPI
+
+getOrganizationsM :: Maybe PerPage -> Maybe Page -> ScalewayAccountClient Organizations
+getOrganizationsM perPage = ScalewayAccount . scalewayGetListRequest getOrganizations_ perPage

@@ -16,14 +16,16 @@ module Scaleway.API.Server
 
 import           Data.Proxy        (Proxy (..))
 import           Data.Text         (Text)
-import           Scaleway.API.Core (Page, PerPage, ScalewayAuthToken,
-                                    ScalewayClient, XAuthToken, ParamPerPage, ParamPage,
+import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
+                                    ScalewayAuthToken, ScalewayClient,
+                                    ScalewayComputeClient (..), XAuthToken,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
 import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    Server, ServerCreate, ServerResult, Servers, ServerId)
+                                    Server, ServerCreate, ServerId,
+                                    ServerResult, Servers)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
                                     JSON, Post, Put, QueryParam, ReqBody)
 import           Servant.Client    (ClientM, client)
@@ -84,23 +86,23 @@ getServers_
   :<|> getActions_
   :<|> postAction_ = client serverAPI
 
-getServersM :: Maybe PerPage -> Maybe Page -> ScalewayClient Servers
-getServersM = scalewayGetListRequest getServers_
+getServersM :: Maybe PerPage -> Maybe Page -> ScalewayComputeClient Servers
+getServersM perPage = ScalewayCompute . scalewayGetListRequest getServers_ perPage
 
-getServerM :: ServerId -> ScalewayClient ServerResult
-getServerM = scalewayGetSingleRequest getServer_
+getServerM :: ServerId -> ScalewayComputeClient ServerResult
+getServerM = ScalewayCompute . scalewayGetSingleRequest getServer_
 
-postServerM :: ServerCreate -> ScalewayClient ServerResult
-postServerM = scalewayPostRequest postServer_
+postServerM :: ServerCreate -> ScalewayComputeClient ServerResult
+postServerM = ScalewayCompute . scalewayPostRequest postServer_
 
-putServerM :: ServerId -> Server -> ScalewayClient ServerResult
-putServerM = scalewayPutRequest putServer_
+putServerM :: ServerId -> Server -> ScalewayComputeClient ServerResult
+putServerM i = ScalewayCompute . scalewayPutRequest putServer_ i
 
-deleteServerM :: ServerId -> ScalewayClient ()
-deleteServerM = scalewayDeleteRequest deleteServer_
+deleteServerM :: ServerId -> ScalewayComputeClient ()
+deleteServerM = ScalewayCompute . scalewayDeleteRequest deleteServer_
 
-getActionsM :: ServerId -> ScalewayClient Actions
-getActionsM = scalewayGetSingleRequest getActions_
+getActionsM :: ServerId -> ScalewayComputeClient Actions
+getActionsM = ScalewayCompute . scalewayGetSingleRequest getActions_
 
-postActionM :: ServerId -> ActionRequest -> ScalewayClient ActionResponse
-postActionM serverId = scalewayPostRequest (\auth -> postAction_ auth serverId)
+postActionM :: ServerId -> ActionRequest -> ScalewayComputeClient ActionResponse
+postActionM serverId = ScalewayCompute . scalewayPostRequest (\auth -> postAction_ auth serverId)
