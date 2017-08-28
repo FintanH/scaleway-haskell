@@ -9,8 +9,8 @@ module Scaleway.API.Core
     , ScalewayClient
     , ScalewayAccountClient (..)
     , ScalewayComputeClient (..)
-    , PerPage
-    , Page
+    , PerPage (..)
+    , Page (..)
     , ParamPage
     , ParamPerPage
     , scalewayGetListRequest
