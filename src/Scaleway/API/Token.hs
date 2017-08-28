@@ -13,19 +13,17 @@ module Scaleway.API.Token
     ) where
 
 import           Data.Proxy        (Proxy (..))
-import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
                                     ScalewayAccountClient (..),
-                                    ScalewayAuthToken, ScalewayClient,
-                                    XAuthToken, scalewayDeleteRequest,
+                                    ScalewayAuthToken, XAuthToken,
+                                    scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
-import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    Token, TokenCreate, TokenId, TokenResult,
+import           Scaleway.Types    (Token, TokenCreate, TokenId, TokenResult,
                                     Tokens)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
-                                    JSON, Post, Put, QueryParam, ReqBody)
+                                    JSON, Post, Put, ReqBody)
 import           Servant.Client    (ClientM, client)
 
 type CaptureTokenId = Capture "tokenId" TokenId

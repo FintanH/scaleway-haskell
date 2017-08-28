@@ -13,8 +13,7 @@ import           Scaleway.API.Core (ScalewayAccountClient (..),
                                     ScalewayAuthToken, XAuthToken,
                                     scalewayGetSingleRequest)
 import           Scaleway.Types    (UserId, UserResult)
-import           Servant.API       ((:<|>) (..), (:>), Capture, Get, JSON,
-                                    QueryParam)
+import           Servant.API       ((:>), Capture, Get, JSON)
 import           Servant.Client    (ClientM, client)
 
 type CaptureUserId = Capture "userId" UserId

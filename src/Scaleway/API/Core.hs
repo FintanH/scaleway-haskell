@@ -22,15 +22,16 @@ module Scaleway.API.Core
     , runComputeClient
     ) where
 
-import           Control.Monad.Reader    (ReaderT, ask, runReaderT)
+import           Control.Monad.Catch     (MonadCatch, MonadThrow)
+import           Control.Monad.IO.Class  (MonadIO)
+import           Control.Monad.Reader    (MonadReader, ReaderT, ask, runReaderT)
 import           Control.Monad.Trans     (lift)
 import           Data.Aeson              (FromJSON, ToJSON)
 import           Data.String             (IsString)
 import           Data.Text               (Text)
 import           Network.HTTP.Client.TLS (newTlsManager)
 import           Scaleway.Types          (Region)
-import           Servant.API             ((:>), Header, QueryParam,
-                                          ToHttpApiData (toUrlPiece))
+import           Servant.API             (Header, QueryParam, ToHttpApiData)
 import           Servant.Client          (BaseUrl (..), ClientEnv (..), ClientM,
                                           Scheme (..), ServantError, runClientM)
 
@@ -55,7 +56,22 @@ data Account
 data Compute
 
 newtype ScalewayAccountClient a = ScalewayAccount (ScalewayClient Account a)
+  deriving ( Functor
+           , Applicative
+           , Monad
+           , MonadReader XAuthToken
+           , MonadThrow
+           , MonadCatch
+           , MonadIO)
+
 newtype ScalewayComputeClient a = ScalewayCompute (ScalewayClient Compute a)
+  deriving ( Functor
+           , Applicative
+           , Monad
+           , MonadReader XAuthToken
+           , MonadThrow
+           , MonadCatch
+           , MonadIO)
 
 newtype HostPrefix = HostPrefix String
 

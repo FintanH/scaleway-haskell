@@ -4,8 +4,8 @@
 module Scaleway.Types where
 
 import           Data.Aeson          (FromJSON (..), ToJSON (..),
-                                      Value (Array, String), genericParseJSON,
-                                      genericToJSON, withObject, withText, (.:))
+                                      Value (String), genericParseJSON,
+                                      genericToJSON, withText)
 import           Data.Aeson.Casing   (snakeCase)
 import           Data.Aeson.TH       (defaultOptions, fieldLabelModifier)
 import           Data.Char           (toLower)
@@ -13,7 +13,7 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Text           (Text, pack, unpack)
 import           Data.Time           (UTCTime)
 import           GHC.Generics
-import           Servant.API         (ToHttpApiData (toUrlPiece))
+import           Servant.API         (ToHttpApiData)
 
 
 -------------------------------------------------------------------------------
@@ -194,7 +194,7 @@ instance ToJSON CommercialType where
     ARM64_32GB  -> String "ARM64-128GB"
     ARM64_64GB  -> String "ARM64-128GB"
     ARM64_128GB -> String "ARM64-128GB"
-    ct          -> String . pack . show $ ct
+    ct'          -> String . pack . show $ ct'
 
 -------------------------------------------------------------------------------
 

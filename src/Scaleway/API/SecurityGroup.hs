@@ -18,22 +18,20 @@ module Scaleway.API.SecurityGroup
     ) where
 
 import           Data.Proxy        (Proxy (..))
-import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
-                                    ScalewayAuthToken, ScalewayClient,
+                                    ScalewayAuthToken,
                                     ScalewayComputeClient (..), XAuthToken,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
-import           Scaleway.Types    (ActionRequest, ActionResponse, Actions,
-                                    SecurityGroup, SecurityGroupCreate,
+import           Scaleway.Types    (SecurityGroup, SecurityGroupCreate,
                                     SecurityGroupId, SecurityGroupResult,
                                     SecurityGroups, SecurityRule,
                                     SecurityRuleCreate, SecurityRuleId,
                                     SecurityRuleResult, SecurityRules)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
-                                    JSON, Post, Put, QueryParam, ReqBody)
+                                    JSON, Post, Put, ReqBody)
 import           Servant.Client    (ClientM, client)
 
 type CaptureSecurityGroupId = Capture "securityGroupId" SecurityGroupId

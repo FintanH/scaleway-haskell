@@ -13,18 +13,16 @@ module Scaleway.API.Ip
     ) where
 
 import           Data.Proxy        (Proxy (..))
-import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
-                                    ScalewayAuthToken, ScalewayClient,
+                                    ScalewayAuthToken,
                                     ScalewayComputeClient (..), XAuthToken,
                                     scalewayDeleteRequest,
                                     scalewayGetListRequest,
                                     scalewayGetSingleRequest,
                                     scalewayPostRequest, scalewayPutRequest)
-import           Scaleway.Types    (ActionRequest, ActionResponse, Actions, Ip,
-                                    IpCreate, IpId, IpResult, Ips)
+import           Scaleway.Types    (Ip, IpCreate, IpId, IpResult, Ips)
 import           Servant.API       ((:<|>) (..), (:>), Capture, Delete, Get,
-                                    JSON, Post, Put, QueryParam, ReqBody)
+                                    JSON, Post, Put, ReqBody)
 import           Servant.Client    (ClientM, client)
 
 type CaptureIpId = Capture "ipId" IpId

@@ -9,13 +9,12 @@ module Scaleway.API.Organization
     ) where
 
 import           Data.Proxy        (Proxy (..))
-import           Data.Text         (Text)
 import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
                                     ScalewayAccountClient (..),
                                     ScalewayAuthToken, XAuthToken,
                                     scalewayGetListRequest)
 import           Scaleway.Types    (Organizations)
-import           Servant.API       ((:<|>) (..), (:>), Get, JSON, QueryParam)
+import           Servant.API       ((:>), Get, JSON)
 import           Servant.Client    (ClientM, client)
 
 type OrganizationAPI =

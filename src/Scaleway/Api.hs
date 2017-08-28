@@ -6,6 +6,7 @@
 module Scaleway.API
     ( module API
     , ScalewayAPI
+    , scalewayAPI
     , Page (..)
     , PerPage (..)
     , XAuthToken (..)
