@@ -14,6 +14,8 @@ module Scaleway.API
     , ScalewayAccountClient
     , runAccountClient
     , runComputeClient
+    -- ^ re-export for convenience
+    , ServantError
     )where
 
 import           Data.Proxy                 (Proxy (..))
@@ -33,6 +35,7 @@ import           Scaleway.API.User          as API
 import           Scaleway.API.Volume        as API
 import           Scaleway.Types             as API
 import           Servant.API                ((:<|>) (..))
+import           Servant.Client             (ServantError)
 
 type ScalewayAPI =
        ServerAPI
