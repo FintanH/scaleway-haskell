@@ -15,8 +15,7 @@ import           Scaleway.API.Core (Page, ParamPage, ParamPerPage, PerPage,
                                     ScalewayAuthToken, XAuthToken,
                                     scalewayGetListRequest)
 import           Scaleway.Types    (Organizations)
-import           Servant.API       ((:<|>) (..), (:>), Get, JSON, Post, Put,
-                                    QueryParam)
+import           Servant.API       ((:<|>) (..), (:>), Get, JSON, QueryParam)
 import           Servant.Client    (ClientM, client)
 
 type OrganizationAPI =

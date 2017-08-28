@@ -24,6 +24,7 @@ library
                      , Scaleway.API.Organization
                      , Scaleway.API.Token
                      , Scaleway.API.Ip
+                     , Scaleway.API.User
   build-depends:       base >= 4.7 && < 5
                      , text
                      , aeson

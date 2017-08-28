@@ -286,7 +286,7 @@ organizationRefPrefix :: String
 organizationRefPrefix = "organizationRef"
 
 data OrganizationRef = OrganizationRef {
-    organizationRefId :: OrganizationId
+    organizationRefId   :: OrganizationId
   , organizationRefName :: OrganizationName
 } deriving (Show, Eq, Generic)
 
@@ -358,7 +358,7 @@ instance ToJSON ImageCreate where
 -------------------------------------------------------------------------------
 
 newtype UserId = UserId Text
-  deriving (Show, Eq, Generic, FromJSON)
+  deriving (Show, Eq, Generic, FromJSON, ToHttpApiData)
 
 newtype UserEmail = UserEmail Text
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
@@ -389,6 +389,12 @@ data User = User {
 
 instance FromJSON User where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length userPrefix) }
+
+
+newtype UserResult = UserResult { user :: User }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON UserResult
 
 
 sshPublicKeyPrefix :: String
@@ -587,7 +593,7 @@ newtype SecurityGroupName = SecurityGroupName Text
 
 
 securityGroupPrefix :: String
-securityGroupPrefix = "securityGroupRef"
+securityGroupPrefix = "securityGroup"
 
 data SecurityGroup = SecurityGroup {
     securityGroupId                    :: SecurityGroupId
@@ -650,7 +656,7 @@ data Snapshot = Snapshot {
     snapshotId           :: SnapshotId
   , snapshotName         :: SnapshotName
   , snapshotOrganization :: OrganizationId
-  , snapshotBaseVolume   :: VolumeRef
+  , snapshotBaseVolume   :: Maybe VolumeRef
   , snapshotCreationDate :: UTCTime
   , snapshotSize         :: Int
   , snapshotState        :: SnapshotState
@@ -718,9 +724,8 @@ tokenPrefix = "token"
 data Token = Token {
     tokenId                :: TokenId
   , tokenCreationDate      :: UTCTime
-  , tokenExpires           :: Bool
+  , tokenExpires           :: Maybe UTCTime
   , tokenInheritsUserPerms :: Bool
-  , tokenPermissions       :: [Text]
   , tokenRoles             :: Role
 } deriving (Show, Eq, Generic)
 
@@ -783,14 +788,14 @@ instance FromJSON SecurityRule where
 instance ToJSON SecurityRule where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length securityRulePrefix) }
 
-data SecurityRules = SecurityRules { securityRules :: [SecurityRule] }
+data SecurityRules = SecurityRules { rules :: [SecurityRule] }
   deriving (Show, Eq, Generic)
 
 instance FromJSON SecurityRules where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase }
 
 
-data SecurityRuleResult = SecurityRuleResult { securityRule :: SecurityRule }
+data SecurityRuleResult = SecurityRuleResult { rule :: SecurityRule }
   deriving (Show, Eq, Generic)
 
 instance FromJSON SecurityRuleResult where

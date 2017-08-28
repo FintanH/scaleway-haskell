@@ -28,6 +28,7 @@ import           Scaleway.API.SecurityGroup as API
 import           Scaleway.API.Server        as API
 import           Scaleway.API.Snapshot      as API
 import           Scaleway.API.Token         as API
+import           Scaleway.API.User          as API
 import           Scaleway.API.Volume        as API
 import           Scaleway.Types             as API
 import           Servant.API                ((:<|>) (..))
@@ -41,6 +42,7 @@ type ScalewayAPI =
   :<|> SecurityGroupAPI
   :<|> TokenAPI
   :<|> OrganizationAPI
+  :<|> UserAPI
 
 scalewayAPI :: Proxy ScalewayAPI
 scalewayAPI = Proxy
