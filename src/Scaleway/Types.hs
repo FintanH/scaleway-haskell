@@ -10,6 +10,7 @@ import           Data.Aeson.Casing   (snakeCase)
 import           Data.Aeson.TH       (defaultOptions, fieldLabelModifier)
 import           Data.Char           (toLower)
 import qualified Data.HashMap.Strict as HM
+import           Data.Semigroup      (Semigroup)
 import           Data.Text           (Text, pack, unpack)
 import           Data.Time           (UTCTime)
 import           GHC.Generics
@@ -54,7 +55,7 @@ instance ToJSON Server where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length serverPrefix) }
 
 newtype Servers = Servers { servers :: [Server] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 instance FromJSON Servers
 
@@ -220,7 +221,7 @@ instance ToJSON Action where
 
 
 newtype Actions = Actions { actions :: [Action] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 instance FromJSON Actions
 
@@ -278,7 +279,7 @@ instance FromJSON Organization where
 
 
 newtype Organizations = Organizations { organizations :: [Organization] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 instance FromJSON Organizations
 
@@ -332,7 +333,7 @@ instance ToJSON Image where
 
 
 newtype Images = Images { images :: [Image] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 instance FromJSON Images
 
@@ -486,7 +487,7 @@ instance ToJSON Volume where
 
 
 newtype Volumes = Volumes { volumes :: [Volume] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 instance FromJSON Volumes
 
@@ -548,7 +549,7 @@ instance ToJSON Ip where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length ipPrefix) }
 
 newtype Ips = Ips { ips :: [Ip] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 instance FromJSON Ips
 
@@ -616,7 +617,7 @@ instance ToJSON SecurityGroup where
 
 
 newtype SecurityGroups = SecurityGroups { securityGroups :: [SecurityGroup] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 instance FromJSON SecurityGroups where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase }
@@ -690,7 +691,7 @@ instance ToJSON SnapshotState where
 
 
 newtype Snapshots = Snapshots { snapshots :: [Snapshot] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 instance FromJSON Snapshots
 
@@ -740,7 +741,7 @@ instance ToJSON Token where
 
 
 newtype Tokens = Tokens { tokens :: [Token] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 instance FromJSON Tokens
 
@@ -792,7 +793,7 @@ instance ToJSON SecurityRule where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length securityRulePrefix) }
 
 newtype SecurityRules = SecurityRules { rules :: [SecurityRule] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 instance FromJSON SecurityRules where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase }
