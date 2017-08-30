@@ -53,7 +53,8 @@ instance FromJSON Server where
 instance ToJSON Server where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length serverPrefix) }
 
-newtype Servers = Servers { servers :: [Server] } deriving (Show, Eq, Generic)
+newtype Servers = Servers { servers :: [Server] }
+  deriving (Show, Eq, Generic, Monoid)
 
 instance FromJSON Servers
 
@@ -194,7 +195,7 @@ instance ToJSON CommercialType where
     ARM64_32GB  -> String "ARM64-128GB"
     ARM64_64GB  -> String "ARM64-128GB"
     ARM64_128GB -> String "ARM64-128GB"
-    ct'          -> String . pack . show $ ct'
+    ct'         -> String . pack . show $ ct'
 
 -------------------------------------------------------------------------------
 
@@ -219,7 +220,7 @@ instance ToJSON Action where
 
 
 newtype Actions = Actions { actions :: [Action] }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Monoid)
 
 instance FromJSON Actions
 
@@ -277,7 +278,7 @@ instance FromJSON Organization where
 
 
 newtype Organizations = Organizations { organizations :: [Organization] }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Monoid)
 
 instance FromJSON Organizations
 
@@ -330,7 +331,8 @@ instance ToJSON Image where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length imagePrefix) }
 
 
-newtype Images = Images { images :: [Image] } deriving (Show, Eq, Generic)
+newtype Images = Images { images :: [Image] }
+  deriving (Show, Eq, Generic, Monoid)
 
 instance FromJSON Images
 
@@ -483,7 +485,8 @@ instance ToJSON Volume where
       modify s            = snakeCase . drop (length volumePrefix) $ s
 
 
-newtype Volumes = Volumes { volumes :: [Volume] } deriving (Show, Eq, Generic)
+newtype Volumes = Volumes { volumes :: [Volume] }
+  deriving (Show, Eq, Generic, Monoid)
 
 instance FromJSON Volumes
 
@@ -545,7 +548,7 @@ instance ToJSON Ip where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length ipPrefix) }
 
 newtype Ips = Ips { ips :: [Ip] }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Monoid)
 
 instance FromJSON Ips
 
@@ -613,7 +616,7 @@ instance ToJSON SecurityGroup where
 
 
 newtype SecurityGroups = SecurityGroups { securityGroups :: [SecurityGroup] }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Monoid)
 
 instance FromJSON SecurityGroups where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase }
@@ -687,7 +690,7 @@ instance ToJSON SnapshotState where
 
 
 newtype Snapshots = Snapshots { snapshots :: [Snapshot] }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Monoid)
 
 instance FromJSON Snapshots
 
@@ -737,7 +740,7 @@ instance ToJSON Token where
 
 
 newtype Tokens = Tokens { tokens :: [Token] }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Monoid)
 
 instance FromJSON Tokens
 
@@ -788,8 +791,8 @@ instance FromJSON SecurityRule where
 instance ToJSON SecurityRule where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length securityRulePrefix) }
 
-data SecurityRules = SecurityRules { rules :: [SecurityRule] }
-  deriving (Show, Eq, Generic)
+newtype SecurityRules = SecurityRules { rules :: [SecurityRule] }
+  deriving (Show, Eq, Generic, Monoid)
 
 instance FromJSON SecurityRules where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase }
