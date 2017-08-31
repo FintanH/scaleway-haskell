@@ -849,7 +849,7 @@ instance ToJSON Protocol
 data Region =
     Paris
   | Amsterdam
-  deriving (Eq)
+  deriving (Eq, Ord, Read)
 
 instance Show Region where
   show Paris     = "par1"
