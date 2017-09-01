@@ -79,7 +79,7 @@ clientEnv :: HostPrefix -> IO ClientEnv
 clientEnv (HostPrefix prefix) = do
   let host = prefix ++ ".scaleway.com"
   manager <- newTlsManager
-  pure $ ClientEnv manager (BaseUrl Http host 80 "")
+  pure $ ClientEnv manager (BaseUrl Https host 443 "")
 
 computeEnv :: Region -> IO ClientEnv
 computeEnv region = clientEnv (HostPrefix $ "cp-" ++ toRegionUrl region)
