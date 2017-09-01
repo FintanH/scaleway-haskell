@@ -144,7 +144,7 @@ instance FromJSON ServerState where
       "running" -> pure Running
       "stopped" -> pure Stopped
       "booted"  -> pure Booted
-      _         -> fail ("Server state " ++ (unpack t) ++ " was not recognised")
+      _         -> fail ("Server state " ++ unpack t ++ " was not recognised")
 
 instance ToJSON ServerState where
   toJSON = String . pack . map toLower . show
@@ -185,7 +185,7 @@ instance FromJSON CommercialType where
       "ARM64-32GB"  -> pure ARM64_32GB
       "ARM64-64GB"  -> pure ARM64_64GB
       "ARM64-128GB" -> pure ARM64_128GB
-      _             -> fail $ "Unknown commercial_type: " ++ (unpack t)
+      _             -> fail $ "Unknown commercial_type: " ++ unpack t
 
 instance ToJSON CommercialType where
   toJSON ct = case ct of
@@ -214,7 +214,7 @@ instance FromJSON Action where
       "poweron"   -> pure PowerOn
       "reboot"    -> pure Reboot
       "terminate" -> pure Terminate
-      _           -> fail $ "Unknown action: " ++ (unpack t)
+      _           -> fail $ "Unknown action: " ++ unpack t
 
 instance ToJSON Action where
   toJSON = String . pack . map toLower . show
@@ -251,7 +251,7 @@ instance FromJSON Task where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length taskPrefix) }
 
 
-data ActionResponse = ActionResponse { task :: Task }
+newtype ActionResponse = ActionResponse { task :: Task }
   deriving (Show, Eq, Generic)
 
 instance FromJSON ActionResponse
@@ -563,9 +563,8 @@ instance FromJSON IpResult
 ipCreatePrefix :: String
 ipCreatePrefix = "ipCreate"
 
-data IpCreate = IpCreate {
-    ipCreateOrganization :: OrganizationId
-} deriving (Show, Eq, Generic)
+newtype IpCreate = IpCreate { ipCreateOrganization :: OrganizationId }
+  deriving (Show, Eq, Generic)
 
 instance ToJSON IpCreate where
   toJSON = genericToJSON defaultOptions { fieldLabelModifier = snakeCase . drop (length ipCreatePrefix) }
@@ -799,7 +798,7 @@ instance FromJSON SecurityRules where
   parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = snakeCase }
 
 
-data SecurityRuleResult = SecurityRuleResult { rule :: SecurityRule }
+newtype SecurityRuleResult = SecurityRuleResult { rule :: SecurityRule }
   deriving (Show, Eq, Generic)
 
 instance FromJSON SecurityRuleResult where
@@ -849,11 +848,11 @@ instance ToJSON Protocol
 data Region =
     Paris
   | Amsterdam
-  deriving (Eq, Ord, Read, Generic)
+  deriving (Show, Eq, Ord, Read, Generic)
 
 instance ToJSON Region
 instance FromJSON Region
 
-instance Show Region where
-  show Paris     = "par1"
-  show Amsterdam = "ams1"
+toRegionUrl :: Region -> String
+toRegionUrl Paris     = "par1"
+toRegionUrl Amsterdam = "ams1"

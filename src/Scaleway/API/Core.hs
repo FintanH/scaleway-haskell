@@ -30,7 +30,7 @@ import           Data.Aeson              (FromJSON, ToJSON)
 import           Data.String             (IsString)
 import           Data.Text               (Text)
 import           Network.HTTP.Client.TLS (newTlsManager)
-import           Scaleway.Types          (Region)
+import           Scaleway.Types          (Region, toRegionUrl)
 import           Servant.API             (Header, QueryParam, ToHttpApiData)
 import           Servant.Client          (BaseUrl (..), ClientEnv (..), ClientM,
                                           Scheme (..), ServantError, runClientM)
@@ -82,7 +82,7 @@ clientEnv (HostPrefix prefix) = do
   pure $ ClientEnv manager (BaseUrl Http host 80 "")
 
 computeEnv :: Region -> IO ClientEnv
-computeEnv region = clientEnv (HostPrefix $ "cp-" ++ show region)
+computeEnv region = clientEnv (HostPrefix $ "cp-" ++ toRegionUrl region)
 
 accountEnv :: IO ClientEnv
 accountEnv = clientEnv (HostPrefix "account")

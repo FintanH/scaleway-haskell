@@ -1,7 +1,5 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Scaleway.API.SecurityGroup
     ( SecurityGroupAPI
@@ -134,16 +132,16 @@ deleteSecurityGroupM :: SecurityGroupId -> ScalewayComputeClient ()
 deleteSecurityGroupM = ScalewayCompute . scalewayDeleteRequest deleteSecurityGroup_
 
 getSecurityRulesM :: SecurityGroupId -> Maybe PerPage -> Maybe Page -> ScalewayComputeClient SecurityRules
-getSecurityRulesM sgId perPage = ScalewayCompute . scalewayGetListRequest (flip getSecurityRules_ sgId) perPage
+getSecurityRulesM sgId perPage = ScalewayCompute . scalewayGetListRequest (`getSecurityRules_` sgId) perPage
 
 getSecurityRuleM :: SecurityGroupId -> SecurityRuleId -> ScalewayComputeClient SecurityRuleResult
-getSecurityRuleM sgId = ScalewayCompute . scalewayGetSingleRequest (flip getSecurityRule_ sgId)
+getSecurityRuleM sgId = ScalewayCompute . scalewayGetSingleRequest (`getSecurityRule_` sgId)
 
 postSecurityRuleM :: SecurityGroupId -> SecurityRuleCreate -> ScalewayComputeClient SecurityRuleResult
-postSecurityRuleM sgId = ScalewayCompute . scalewayPostRequest (flip postSecurityRule_ sgId)
+postSecurityRuleM sgId = ScalewayCompute . scalewayPostRequest (`postSecurityRule_` sgId)
 
 putSecurityRuleM :: SecurityGroupId -> SecurityRuleId -> SecurityRule -> ScalewayComputeClient SecurityRuleResult
-putSecurityRuleM sgId i = ScalewayCompute . scalewayPutRequest (\auth -> putSecurityRule_ auth sgId) i
+putSecurityRuleM sgId i = ScalewayCompute . scalewayPutRequest (`putSecurityRule_` sgId) i
 
 deleteSecurityRuleM :: SecurityGroupId -> SecurityRuleId -> ScalewayComputeClient ()
-deleteSecurityRuleM sgId = ScalewayCompute . scalewayDeleteRequest (\auth -> deleteSecurityRule_ auth sgId)
+deleteSecurityRuleM sgId = ScalewayCompute . scalewayDeleteRequest (`deleteSecurityRule_` sgId)

@@ -1,7 +1,5 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Scaleway.API.Server
     ( ServerAPI
@@ -104,4 +102,4 @@ getActionsM :: ServerId -> ScalewayComputeClient Actions
 getActionsM = ScalewayCompute . scalewayGetSingleRequest getActions_
 
 postActionM :: ServerId -> ActionRequest -> ScalewayComputeClient ActionResponse
-postActionM serverId = ScalewayCompute . scalewayPostRequest (\auth -> postAction_ auth serverId)
+postActionM serverId = ScalewayCompute . scalewayPostRequest (`postAction_` serverId)
