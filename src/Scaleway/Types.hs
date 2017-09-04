@@ -166,7 +166,25 @@ data CommercialType = VC1S
                     | ARM64_32GB
                     | ARM64_64GB
                     | ARM64_128GB
-                    deriving (Show, Eq)
+                    deriving (Eq)
+
+instance Show CommercialType where
+  show ct =
+    case ct of
+      VC1S        -> "VC1S"
+      VC1M        -> "VC1M"
+      VC1L        -> "VC1L"
+      C1          -> "C1"
+      C2S         -> "C2S"
+      C2M         -> "C2M"
+      C2L         -> "C2L"
+      ARM64_2GB   -> "ARM64-128GB"
+      ARM64_4GB   -> "ARM64-128GB"
+      ARM64_8GB   -> "ARM64-128GB"
+      ARM64_16GB  -> "ARM64-128GB"
+      ARM64_32GB  -> "ARM64-128GB"
+      ARM64_64GB  -> "ARM64-128GB"
+      ARM64_128GB -> "ARM64-128GB"
 
 instance FromJSON CommercialType where
   parseJSON = withText "commercial_type" $ \t ->
@@ -188,15 +206,7 @@ instance FromJSON CommercialType where
       _             -> fail $ "Unknown commercial_type: " ++ unpack t
 
 instance ToJSON CommercialType where
-  toJSON ct = case ct of
-    ARM64_2GB   -> String "ARM64-128GB"
-    ARM64_4GB   -> String "ARM64-128GB"
-    ARM64_8GB   -> String "ARM64-128GB"
-    ARM64_16GB  -> String "ARM64-128GB"
-    ARM64_32GB  -> String "ARM64-128GB"
-    ARM64_64GB  -> String "ARM64-128GB"
-    ARM64_128GB -> String "ARM64-128GB"
-    ct'         -> String . pack . show $ ct'
+  toJSON = String . pack . show
 
 -------------------------------------------------------------------------------
 
