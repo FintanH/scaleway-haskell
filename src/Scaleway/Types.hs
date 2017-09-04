@@ -166,7 +166,7 @@ data CommercialType = VC1S
                     | ARM64_32GB
                     | ARM64_64GB
                     | ARM64_128GB
-                    deriving (Eq)
+                    deriving (Read, Eq, Ord)
 
 instance Show CommercialType where
   show ct =
