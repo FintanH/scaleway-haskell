@@ -166,6 +166,10 @@ data CommercialType = VC1S
                     | ARM64_32GB
                     | ARM64_64GB
                     | ARM64_128GB
+                    | X64_15GB
+                    | X64_30GB
+                    | X64_60GB
+                    | X64_120GB
                     deriving (Read, Eq, Ord)
 
 instance Show CommercialType where
@@ -185,6 +189,10 @@ instance Show CommercialType where
       ARM64_32GB  -> "ARM64-128GB"
       ARM64_64GB  -> "ARM64-128GB"
       ARM64_128GB -> "ARM64-128GB"
+      X64_15GB    -> "X64-15GB"
+      X64_30GB    -> "X64-30GB"
+      X64_60GB    -> "X64-60GB"
+      X64_120GB   -> "X64-120GB"
 
 instance FromJSON CommercialType where
   parseJSON = withText "commercial_type" $ \t ->
@@ -203,6 +211,10 @@ instance FromJSON CommercialType where
       "ARM64-32GB"  -> pure ARM64_32GB
       "ARM64-64GB"  -> pure ARM64_64GB
       "ARM64-128GB" -> pure ARM64_128GB
+      "X64-15GB"    -> pure X64_15GB
+      "X64-30GB"    -> pure X64_30GB
+      "X64-60GB"    -> pure X64_60GB
+      "X64-120GB"   -> pure X64_120GB      
       _             -> fail $ "Unknown commercial_type: " ++ unpack t
 
 instance ToJSON CommercialType where
